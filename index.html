@@ -929,7 +929,7 @@
             }
             
             // Validate current question
-            const inputs = currentQuestionEl.querySelectorAll('[data-required="required"], input[required], select[required], textarea[required]');
+            const inputs = currentQuestionEl.querySelectorAll('[data-required], input[required], select[required], textarea[required]');
             let isValid = true;
             
             inputs.forEach(input => {
@@ -1021,7 +1021,7 @@
             const currentQuestionEl = document.getElementById(currentQuestion);
             
             if (currentQuestionEl) {
-                const inputs = currentQuestionEl.querySelectorAll('[data-required="required"], input[required], select[required], textarea[required]');
+                const inputs = currentQuestionEl.querySelectorAll('[data-required], input[required], select[required], textarea[required]');
                 
                 inputs.forEach(input => {
     if (input.type === 'checkbox') {
