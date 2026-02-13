@@ -929,7 +929,7 @@
             }
             
             // Validate current question
-            const inputs = currentQuestionEl.querySelectorAll('input, select, textarea');
+            const inputs = currentQuestionEl.querySelectorAll('[data-required="required"], input[required], select[required], textarea[required]');
             let isValid = true;
             
             inputs.forEach(input => {
@@ -1021,13 +1021,15 @@
             const currentQuestionEl = document.getElementById(currentQuestion);
             
             if (currentQuestionEl) {
-                const inputs = currentQuestionEl.querySelectorAll('input, select, textarea');
+                const inputs = currentQuestionEl.querySelectorAll('[data-required="required"], input[required], select[required], textarea[required]');
                 
                 inputs.forEach(input => {
-                    if (input.value) {
-                        formData[input.id] = input.value;
-                    }
-                });
+    if (input.type === 'checkbox') {
+        formData[input.id] = input.checked ? input.value : '';
+    } else if (input.value) {
+        formData[input.id] = input.value;
+    }
+});
             }
             
             // Add timestamp
@@ -1114,16 +1116,23 @@ function scheduleAssetCheck() {
 // Auto-advance for asset check
 document.addEventListener('DOMContentLoaded', function() {
     const checkboxes = document.querySelectorAll('#q3_assetcheck input[type="checkbox"]');
-    checkboxes.forEach(cb => {
-        cb.addEventListener('change', function() {
-            const hasInput = document.getElementById('check_comments').value || 
-                           Array.from(checkboxes).some(c => c.checked);
-            if (hasInput && currentStep === 3) {
-                setTimeout(goToNextQuestion, 500);
-            }
-        });
-    });
+    // Asset check auto-advance
+document.addEventListener('DOMContentLoaded', function() {
+    const checkboxes = document.querySelectorAll('#q3_assetcheck input[type="checkbox"]');
+    const comments = document.getElementById('check_comments');
+    function checkAssetInput() {
+        const hasInput = comments.value.trim() || 
+                        Array.from(checkboxes).some(c => c.checked);
+        if (hasInput && document.getElementById('q3_assetcheck').classList.contains('active')) {
+            setTimeout(goToNextQuestion, 500);
+        }
+    }
+    
+    checkboxes.forEach(cb => cb.addEventListener('change', checkAssetInput));
+    if (comments) comments.addEventListener('input', checkAssetInput);
 });
+
+
 
         // Initialize
         showCurrentQuestion();
