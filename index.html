@@ -268,10 +268,17 @@
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>🎸 Worship Team Portal</h1>
-            <p>Quick access for team updates and requests</p>
-        </div>
+           <div class="header">
+    <h1>🎸 Worship Team Portal</h1>
+    <p>Quick access for team updates and requests</p>
+    <div style="margin-top: 20px;">
+        <button onclick="scheduleAssetCheck()" class="btn btn-primary" style="width: auto; padding: 12px 24px;">
+            📅 Schedule Asset Check
+        </button>
+    </div>
+</div>
+
+
 
         <div class="card" id="formCard">
             <div class="progress">
@@ -324,6 +331,7 @@
                         <option value="Contribute">Contribute</option>
                         <option value="Referring someone for audition">Referring someone for audition</option>
                         <option value="Give suggestions to improve">Give suggestions to improve</option>
+                        <option value="Asset Check Reminder">Asset Check Reminder</option>
                     </select>
                 </div>
 
@@ -655,6 +663,25 @@
                 </div>
 
                 <!-- SUGGESTIONS BRANCH -->
+                <!-- ASSET CHECK REMINDER BRANCH -->
+                
+<div class="question" id="q3_assetcheck">
+    <label class="form-label">Quick Asset Status Check <span class="required">*</span></label>
+    <div style="display: grid; gap: 12px; margin-bottom: 16px;">
+        <label><input type="checkbox" id="check_guitars" value="Guitars OK"> Guitars ✓</label>
+        <label><input type="checkbox" id="check_stands" value="Stands OK"> Stands ✓</label>
+        <label><input type="checkbox" id="check_cables" value="Cables OK"> Cables ✓</label>
+        <label><input type="checkbox" id="check_dibox" value="DI Box OK"> DI Box ✓</label>
+        <label><input type="checkbox" id="check_iems" value="IEMs OK"> IEMs ✓</label>
+        <label><input type="checkbox" id="check_drums" value="Drum Kit OK"> Drum Kit ✓</label>
+        <label><input type="checkbox" id="check_perc" value="Percussion OK"> Percussion ✓</label>
+        <label><input type="checkbox" id="check_keys" value="Keyboards OK"> Keyboards ✓</label>
+        <label><input type="checkbox" id="check_sound" value="Sound System OK"> Sound System ✓</label>
+    </div>
+    <label class="form-label">Issues found (if any)</label>
+    <textarea id="check_comments" placeholder="Describe any issues..."></textarea>
+</div>
+
                 <div class="question" id="q3_suggestions">
                     <label class="form-label">Provide your suggestions below</label>
                     <textarea id="suggestions_text" placeholder="Share your ideas for improvement..."></textarea>
@@ -711,6 +738,7 @@
                     'Percussion': ['q4_percussion', 'q5_percussion_action'],
                     'Keyboards': ['q4_keyboards', 'q5_keyboard_action'],
                     'Sound System': ['q4_soundsystem', 'q5_soundsystem_action']
+                    'Asset Check Reminder': {questions: ['q3_assetcheck']
                 }
             },
             'Learn': {
@@ -1065,6 +1093,37 @@
                 console.error('Error submitting form:', error);
             });
         }
+// Schedule Asset Check - sends email via Apps Script
+function scheduleAssetCheck() {
+    if (!confirm('Send asset check reminder to team?')) return;
+    
+    const data = {
+        reason: 'SCHEDULE_CHECK',
+        timestamp: new Date().toISOString(),
+        message: 'Please perform weekly asset check via Worship Portal'
+    };
+    
+    fetch('https://script.google.com/macros/s/YOUR_APPS_SCRIPT_ID/exec', {
+        method: 'POST',
+        body: JSON.stringify(data)
+    }).then(() => {
+        alert('✅ Asset check reminder scheduled! Team notified.');
+    });
+}
+
+// Auto-advance for asset check
+document.addEventListener('DOMContentLoaded', function() {
+    const checkboxes = document.querySelectorAll('#q3_assetcheck input[type="checkbox"]');
+    checkboxes.forEach(cb => {
+        cb.addEventListener('change', function() {
+            const hasInput = document.getElementById('check_comments').value || 
+                           Array.from(checkboxes).some(c => c.checked);
+            if (hasInput && currentStep === 3) {
+                setTimeout(goToNextQuestion, 500);
+            }
+        });
+    });
+});
 
         // Initialize
         showCurrentQuestion();
