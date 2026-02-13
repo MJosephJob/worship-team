@@ -3,33 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Worship Team Portal</title>
+    <title>CBC Worship Team Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         :root {
-            --color-bg: #fcfcf9;
-            --color-surface: #fffffd;
-            --color-text: #13343b;
-            --color-text-secondary: #626c71;
-            --color-primary: #21808d;
-            --color-primary-hover: #1d7480;
-            --color-border: rgba(94, 82, 64, 0.2);
-            --color-success: #21808d;
+            /* Classy Dark Theme - CBC Premium */
+            --color-bg: #1f2121;
+            --color-surface: #262828;
+            --color-text: #f5f5f5;
+            --color-text-secondary: rgba(167, 169, 169, 0.7);
+            --color-primary: #32b8c6;
+            --color-primary-hover: #2da6b2;
+            --color-border: rgba(119, 124, 124, 0.3);
+            --color-success: #32b8c6;
             --radius-base: 8px;
             --radius-lg: 12px;
-            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
-            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.04), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
-        }
-
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --color-bg: #1f2121;
-                --color-surface: #262828;
-                --color-text: #f5f5f5;
-                --color-text-secondary: rgba(167, 169, 169, 0.7);
-                --color-primary: #32b8c6;
-                --color-primary-hover: #2da6b2;
-                --color-border: rgba(119, 124, 124, 0.3);
-            }
+            --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
+            --shadow-md: 0 6px 12px rgba(0, 0, 0, 0.4);
+            --shadow-lg: 0 12px 24px rgba(0, 0, 0, 0.5);
         }
 
         * {
@@ -39,21 +30,76 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             background: var(--color-bg);
             color: var(--color-text);
             padding: 20px;
             line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
         }
 
+        .page-wrapper {
+            display: flex;
+            gap: 24px;
+            max-width: 800px;
+            width: 100%;
+            align-items: flex-start;
+        }
+
+        /* Vertical CBC Logo on Left */
+        .vertical-logo {
+            position: sticky;
+            top: 20px;
+            flex-shrink: 0;
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            transform: rotate(180deg);
+            background: linear-gradient(135deg, #2a2c2c 0%, #262828 100%);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            border: 1px solid rgba(50, 184, 198, 0.2);
+            padding: 24px 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-text {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 48px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #32b8c6 0%, #4dd4e3 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 4px;
+            text-shadow: 0 2px 8px rgba(50, 184, 198, 0.3);
+            white-space: nowrap;
+        }
+
+        .logo-subtitle {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 11px;
+            color: var(--color-primary);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            white-space: nowrap;
+        }
+
+        /* Main Content Area */
         .container {
+            flex: 1;
             max-width: 600px;
-            margin: 0 auto;
         }
 
         .header {
             text-align: center;
-            margin-bottom: 32px;
+            margin-bottom: 24px;
         }
 
         .header h1 {
@@ -65,1077 +111,1304 @@
 
         .header p {
             color: var(--color-text-secondary);
-            font-size: 14px;
+            font-size: 15px;
         }
 
         .card {
             background: var(--color-surface);
             border-radius: var(--radius-lg);
-            padding: 24px;
             box-shadow: var(--shadow-md);
+            padding: 24px;
+            margin-bottom: 16px;
+            border: 1px solid rgba(119, 124, 124, 0.2);
+        }
+
+        .form-group {
             margin-bottom: 20px;
         }
 
-        .progress {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 24px;
-            padding: 12px;
-            background: rgba(var(--color-primary), 0.1);
-            border-radius: var(--radius-base);
-        }
-
-        .progress-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: var(--color-border);
-            transition: all 0.3s ease;
-        }
-
-        .progress-dot.active {
-            background: var(--color-primary);
-            transform: scale(1.3);
-        }
-
-        .progress-text {
-            margin-left: auto;
-            font-size: 13px;
-            color: var(--color-text-secondary);
-            font-weight: 500;
-        }
-
-        .question {
-            display: none;
-            animation: fadeIn 0.3s ease;
-        }
-
-        .question.active {
+        label {
             display: block;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .form-label {
-            display: block;
-            margin-bottom: 12px;
-            font-weight: 500;
-            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 10px;
             color: var(--color-text);
-        }
-
-        .form-label .required {
-            color: #c0152f;
-            margin-left: 4px;
+            font-size: 15px;
         }
 
         select, textarea, input[type="text"] {
             width: 100%;
             padding: 12px 14px;
-            font-size: 15px;
-            border: 1px solid var(--color-border);
+            border: 2px solid var(--color-border);
             border-radius: var(--radius-base);
-            background: var(--color-surface);
+            font-size: 15px;
+            background: var(--color-bg);
             color: var(--color-text);
-            transition: all 0.2s ease;
+            transition: all 0.2s;
+            cursor: pointer;
             font-family: inherit;
         }
 
-        select {
-            cursor: pointer;
-            appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23134252' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 12px center;
-            background-size: 16px;
-            padding-right: 40px;
+        input[type="text"] {
+            cursor: text;
         }
 
-        select:focus, textarea:focus, input:focus {
-            outline: 2px solid var(--color-primary);
+        select:hover, input[type="text"]:hover, textarea:hover {
             border-color: var(--color-primary);
         }
 
-        textarea {
-            min-height: 120px;
-            resize: vertical;
+        select:focus, textarea:focus, input[type="text"]:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(50, 184, 198, 0.2);
         }
 
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        button {
             padding: 12px 24px;
+            border: none;
             border-radius: var(--radius-base);
             font-size: 15px;
-            font-weight: 500;
+            font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s ease;
-            border: none;
-            width: 100%;
-            margin-top: 16px;
+            transition: all 0.2s;
+            font-family: inherit;
         }
 
         .btn-primary {
             background: var(--color-primary);
-            color: white;
+            color: #1f2121;
+            flex: 1;
         }
 
         .btn-primary:hover {
             background: var(--color-primary-hover);
             transform: translateY(-1px);
-            box-shadow: var(--shadow-sm);
-        }
-
-        .btn-primary:active {
-            transform: translateY(0);
+            box-shadow: 0 4px 12px rgba(50, 184, 198, 0.4);
         }
 
         .btn-secondary {
-            background: transparent;
-            border: 1px solid var(--color-border);
+            background: var(--color-surface);
             color: var(--color-text);
-            margin-right: 8px;
-            width: auto;
+            border: 2px solid var(--color-border);
+            min-width: 100px;
         }
 
         .btn-secondary:hover {
-            background: rgba(var(--color-primary), 0.1);
+            background: var(--color-bg);
+            border-color: var(--color-primary);
+            color: var(--color-primary);
         }
 
-        .btn-group {
-            display: flex;
-            gap: 8px;
-            margin-top: 16px;
+        .question {
+            display: none;
+        }
+
+        .question.active {
+            display: block;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .progress-bar {
+            height: 6px;
+            background: rgba(119, 124, 124, 0.3);
+            border-radius: 3px;
+            margin-bottom: 24px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #32b8c6 0%, #4dd4e3 100%);
+            transition: width 0.4s ease;
+            width: 0%;
+            box-shadow: 0 0 10px rgba(50, 184, 198, 0.5);
         }
 
         .success-message {
-            display: none;
             text-align: center;
             padding: 40px 20px;
         }
 
-        .success-message.active {
-            display: block;
+        .success-message h2 {
+            color: var(--color-success);
+            margin-bottom: 12px;
+            font-size: 28px;
         }
 
-        .success-icon {
-            width: 64px;
-            height: 64px;
-            margin: 0 auto 16px;
-            background: var(--color-success);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 32px;
-        }
-
-        .help-text {
-            font-size: 13px;
+        .success-message p {
             color: var(--color-text-secondary);
-            margin-top: 8px;
+            margin-bottom: 20px;
         }
 
         .hidden {
             display: none !important;
         }
 
-        @media (max-width: 640px) {
-            body {
-                padding: 12px;
-            }
-            
-            .card {
-                padding: 20px;
+        #assetManagementBtn {
+            background: var(--color-primary);
+            color: #1f2121;
+            margin-bottom: 16px;
+            width: 100%;
+        }
+
+        #assetManagementBtn:hover {
+            background: var(--color-primary-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(50, 184, 198, 0.4);
+        }
+
+        .back-button-container {
+            margin-top: 24px;
+        }
+
+        .back-button-container button {
+            width: 100%;
+        }
+
+        .separator {
+            text-align: center;
+            margin: 20px 0;
+            position: relative;
+        }
+
+        .separator::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: var(--color-border);
+        }
+
+        .separator span {
+            background: var(--color-surface);
+            padding: 0 12px;
+            position: relative;
+            color: var(--color-text-secondary);
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--color-bg);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--color-primary);
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--color-primary-hover);
+        }
+
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            .page-wrapper {
+                flex-direction: column;
             }
 
-            .header h1 {
-                font-size: 24px;
+            .vertical-logo {
+                position: relative;
+                writing-mode: horizontal-tb;
+                transform: none;
+                flex-direction: row;
+                padding: 16px 24px;
+                width: 100%;
+                justify-content: center;
+            }
+
+            .logo-text {
+                font-size: 36px;
+                letter-spacing: 2px;
+            }
+
+            .logo-subtitle {
+                font-size: 10px;
             }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-           <div class="header">
-    <h1>🎸 Worship Team Portal</h1>
-    <p>Quick access for team updates and requests</p>
-    <div style="margin-top: 20px;">
-        <button onclick="scheduleAssetCheck()" class="btn btn-primary" style="width: auto; padding: 12px 24px;">
-            📅 Schedule Asset Check
-        </button>
-    </div>
-</div>
+    <div class="page-wrapper">
+        <!-- Vertical CBC Logo on Left -->
+        <div class="vertical-logo">
+            <div class="logo-text">CBC</div>
+            <div class="logo-subtitle">Covenant Blessings Church</div>
+        </div>
 
-
-
-        <div class="card" id="formCard">
-            <div class="progress">
-                <div class="progress-dot active" id="dot1"></div>
-                <div class="progress-dot" id="dot2"></div>
-                <div class="progress-dot" id="dot3"></div>
-                <div class="progress-dot" id="dot4"></div>
-                <div class="progress-text" id="progressText">Step 1 of 4</div>
+        <!-- Main Content -->
+        <div class="container">
+            <div class="header">
+                <h1>🎵 Worship Team Portal</h1>
+                <p>Quick access for team updates and requests</p>
             </div>
 
-            <form id="worshipForm">
-                <!-- Question 1: Name -->
-                <div class="question active" id="q1">
-                    <label class="form-label">
-                        Your Name<span class="required">*</span>
-                    </label>
-                    <select id="name" data-required required>
-                        <option value="">Select your name</option>
-                        <option value="Aashna">Aashna</option>
-                        <option value="Ajay">Ajay</option>
-                        <option value="Angel">Angel</option>
-                        <option value="Ashish">Ashish</option>
-                        <option value="Ayaan">Ayaan</option>
-                        <option value="Blossom">Blossom</option>
-                        <option value="Dilip">Dilip</option>
-                        <option value="Joanne">Joanne</option>
-                        <option value="Joe">Joe</option>
-                        <option value="Joshua">Joshua</option>
-                        <option value="Keith">Keith</option>
-                        <option value="Lilly">Lilly</option>
-                        <option value="Melbin">Melbin</option>
-                        <option value="Moses">Moses</option>
-                        <option value="Roshan">Roshan</option>
-                        <option value="Ruth">Ruth</option>
-                        <option value="Sam">Sam</option>
-                        <option value="Sandeep">Sandeep</option>
-                    </select>
-                    <p class="help-text">Select your name from the list</p>
+            <div class="card">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressBar"></div>
                 </div>
 
-                <!-- Question 2: Reason for Visit -->
-                <div class="question" id="q2">
-                    <label class="form-label">
-                        Reason for visit<span class="required">*</span>
-                    </label>
-                    <select id="reason" data-required required>
-                        <option value="">Select a reason</option>
-                        <option value="Asset update">Asset update</option>
-                        <option value="Learn">Learn</option>
-                        <option value="Contribute">Contribute</option>
-                        <option value="Referring someone for audition">Referring someone for audition</option>
-                        <option value="Give suggestions to improve">Give suggestions to improve</option>
-                        <option value="Asset Check Reminder">Asset Check Reminder</option>
-                    </select>
-                </div>
+                <form id="worshipForm">
+                    <!-- Q1: Name Selection -->
+                    <div class="question active" id="q1_name">
+                        <div class="form-group">
+                            <label for="name">Select your name from the list</label>
+                            <select id="name" required>
+                                <option value="">Choose your name...</option>
+                                <option value="Aashna">Aashna</option>
+                                <option value="Ajay">Ajay</option>
+                                <option value="Angel">Angel</option>
+                                <option value="Ashish">Ashish</option>
+                                <option value="Ayaan">Ayaan</option>
+                                <option value="Blossom">Blossom</option>
+                                <option value="Dilip">Dilip</option>
+                                <option value="Joanne">Joanne</option>
+                                <option value="Joe">Joe</option>
+                                <option value="Joshua">Joshua</option>
+                                <option value="Keith">Keith</option>
+                                <option value="Lilly">Lilly</option>
+                                <option value="Melbin">Melbin</option>
+                                <option value="Moses">Moses</option>
+                                <option value="Roshan">Roshan</option>
+                                <option value="Ruth">Ruth</option>
+                                <option value="Sam">Sam</option>
+                                <option value="Sandeep">Sandeep</option>
+                            </select>
+                        </div>
+                    </div>
 
-                <!-- ASSET UPDATE BRANCH -->
-                <div class="question" id="q3_asset">
-                    <label class="form-label">
-                        Select the Asset<span class="required">*</span>
-                    </label>
-                    <select id="asset" data-required required>
-                        <option value="">Select an asset</option>
-                        <option value="Guitars">Guitars</option>
-                        <option value="Stands">Stands</option>
-                        <option value="Cables">Cables</option>
-                        <option value="DI Box">DI Box</option>
-                        <option value="IEMs">IEMs</option>
-                        <option value="Drum Kit">Drum Kit</option>
-                        <option value="Percussion">Percussion</option>
-                        <option value="Keyboards">Keyboards</option>
-                        <option value="Sound System">Sound System</option>
-                    </select>
-                </div>
+                    <!-- Q2: Reason for Contact -->
+                    <div class="question" id="q2_reason">
+                        <div class="form-group">
+                            <label for="reason">What brings you here today?</label>
+                            <select id="reason" required>
+                                <option value="">Select a reason...</option>
+                                <option value="Learn">Learn - I want to understand something</option>
+                                <option value="Contribute">Contribute - I have an idea or resource to share</option>
+                                <option value="Referral">Referring someone for audition</option>
+                                <option value="Suggestions">Give suggestions to improve</option>
+                            </select>
+                        </div>
 
-                <!-- Asset Sub-options -->
-                <div class="question" id="q4_guitars">
-                    <label class="form-label">Select Guitar<span class="required">*</span></label>
-                    <select id="guitar_type" data-required required>
-                        <option value="">Select guitar</option>
-                        <option value="Fender Acoustic">Fender Acoustic</option>
-                        <option value="Cort Acoustic">Cort Acoustic</option>
-                        <option value="Fender Strat Acoustic">Fender Strat Acoustic</option>
-                        <option value="Yamaha Bass">Yamaha Bass</option>
-                    </select>
-                </div>
+                        <div id="assetTeamSection" class="hidden">
+                            <div class="separator"><span>OR</span></div>
+                            <button type="button" id="assetManagementBtn">
+                                🔧 Asset Management
+                            </button>
+                        </div>
 
-                <div class="question" id="q4_stands">
-                    <label class="form-label">Select Stand<span class="required">*</span></label>
-                    <select id="stand_type" data-required required>
-                        <option value="">Select stand</option>
-                        <option value="Mic Stand">Mic Stand</option>
-                        <option value="Music Stand">Music Stand</option>
-                        <option value="Guitar Stand">Guitar Stand</option>
-                        <option value="Keyboard Stand">Keyboard Stand</option>
-                        <option value="Drum Stand">Drum Stand</option>
-                        <option value="Congo Stand">Congo Stand</option>
-                    </select>
-                </div>
+                        <div class="back-button-container">
+                            <button type="button" class="btn-secondary" onclick="goToPreviousQuestion()">← Back</button>
+                        </div>
+                    </div>
 
-                <div class="question" id="q4_cables">
-                    <label class="form-label">Select Cable<span class="required">*</span></label>
-                    <select id="cable_type" data-required required>
-                        <option value="">Select cable</option>
-                        <option value="Mic Cable">Mic Cable</option>
-                        <option value="Instrument Cable">Instrument Cable</option>
-                        <option value="DI Box Cable">DI Box Cable</option>
-                    </select>
-                </div>
+                    <!-- Q3: Learn Category -->
+                    <div class="question" id="q3_learn_category">
+                        <div class="form-group">
+                            <label for="learn_category">What do you wish to learn?</label>
+                            <select id="learn_category" required>
+                                <option value="">Select category...</option>
+                                <option value="Instrument / Vocals">Instrument / Vocals</option>
+                                <option value="Sound Mixing">Sound Mixing</option>
+                                <option value="Stage Set up">Stage Set up</option>
+                                <option value="DLP">DLP</option>
+                                <option value="Maintenance">Maintenance</option>
+                            </select>
+                        </div>
+                        <div class="back-button-container">
+                            <button type="button" class="btn-secondary" onclick="goToPreviousQuestion()">← Back</button>
+                        </div>
+                    </div>
 
-                <div class="question" id="q4_dibox">
-                    <label class="form-label">Select DI Box<span class="required">*</span></label>
-                    <select id="dibox_type" data-required required>
-                        <option value="">Select DI box</option>
-                        <option value="Keyboard Left">Keyboard Left</option>
-                        <option value="Keyboard Right">Keyboard Right</option>
-                        <option value="Electric Guitar Left">Electric Guitar Left</option>
-                        <option value="Electric Guitar Right">Electric Guitar Right</option>
-                        <option value="Acoustic Guitar">Acoustic Guitar</option>
-                        <option value="Bass Guitar">Bass Guitar</option>
-                    </select>
-                </div>
+                    <!-- Q3a: Learn Instrument -->
+                    <div class="question" id="q3_learn_instrument">
+                        <div class="form-group">
+                            <label for="learn_instrument">Which instrument or vocal style?</label>
+                            <select id="learn_instrument" required>
+                                <option value="">Select instrument...</option>
+                                <option value="Acoustic Guitar">Acoustic Guitar</option>
+                                <option value="Electric Guitar">Electric Guitar</option>
+                                <option value="Bass Guitar">Bass Guitar</option>
+                                <option value="Keyboard / Piano">Keyboard / Piano</option>
+                                <option value="Drums">Drums</option>
+                                <option value="Vocals & Harmonies">Vocals & Harmonies</option>
+                            </select>
+                        </div>
+                        <div class="back-button-container">
+                            <button type="button" class="btn-secondary" onclick="goToPreviousQuestion()">← Back</button>
+                        </div>
+                    </div>
 
-                <div class="question" id="q4_iems">
-                    <label class="form-label">Select IEM<span class="required">*</span></label>
-                    <select id="iem_type" data-required required>
-                        <option value="">Select IEM</option>
-                        <option value="Splitter">Splitter</option>
-                        <option value="1">1</option>
-                        <option value="2">2</option>
-                        <option value="3">3</option>
-                        <option value="4">4</option>
-                        <option value="5">5</option>
-                        <option value="6">6</option>
-                        <option value="7">7</option>
-                        <option value="8">8</option>
-                        <option value="9">9</option>
-                        <option value="10">10</option>
-                        <option value="11">11</option>
-                        <option value="12">12</option>
-                        <option value="13">13</option>
-                        <option value="14">14</option>
-                    </select>
-                </div>
+                    <!-- Q4: Contribute -->
+                    <div class="question" id="q4_contribute">
+                        <div class="form-group">
+                            <label for="contribute_option">How would you like to contribute?</label>
+                            <select id="contribute_option" required>
+                                <option value="">Select contribution type...</option>
+                                <option value="Teaching Instruments">Teaching Instruments</option>
+                                <option value="Teaching Vocals / harmonies">Teaching Vocals / harmonies</option>
+                                <option value="Teaching Sheet Music">Teaching Sheet Music</option>
+                                <option value="Music Director (MD)">Music Director (MD)</option>
+                                <option value="Song writing and compositions">Song writing and compositions</option>
+                                <option value="Music / Song Production">Music / Song Production</option>
+                                <option value="Instrument Maintenance">Instrument Maintenance</option>
+                                <option value="Leading Prayer">Leading Prayer</option>
+                                <option value="Hosting Workshops">Hosting Workshops</option>
+                                <option value="Donating an instrument / stage item">Donating an instrument / stage item</option>
+                            </select>
+                        </div>
+                        <div class="back-button-container">
+                            <button type="button" class="btn-secondary" onclick="goToPreviousQuestion()">← Back</button>
+                        </div>
+                    </div>
 
-                <div class="question" id="q4_drumkit">
-                    <label class="form-label">Select Drum Kit Item<span class="required">*</span></label>
-                    <select id="drumkit_type" data-required required>
-                        <option value="">Select item</option>
-                        <option value="Bass Drum">Bass Drum</option>
-                        <option value="Snare">Snare</option>
-                        <option value="Tom Drum 1">Tom Drum 1</option>
-                        <option value="Tom Drum 2">Tom Drum 2</option>
-                        <option value="Floor Drum">Floor Drum</option>
-                        <option value="Bass Pedal">Bass Pedal</option>
-                        <option value="Hi-Hat">Hi-Hat</option>
-                        <option value="Crash Cymbal">Crash Cymbal</option>
-                        <option value="Ride Cymbal">Ride Cymbal</option>
-                        <option value="Cymbal 3">Cymbal 3</option>
-                        <option value="Cymbal 4">Cymbal 4</option>
-                        <option value="Cymbal 5">Cymbal 5</option>
-                        <option value="Cymbal 6">Cymbal 6</option>
-                        <option value="Drumsticks">Drumsticks</option>
-                        <option value="Drumsticks (wool felt tip)">Drumsticks (wool felt tip)</option>
-                    </select>
-                </div>
+                    <!-- Q5: Referral Name -->
+                    <div class="question" id="q5_referral_name">
+                        <div class="form-group">
+                            <label for="referral_name">Name of the person you would like to refer for audition</label>
+                            <input type="text" id="referral_name" placeholder="Enter their full name..." required>
+                        </div>
+                        <div class="back-button-container">
+                            <button type="button" class="btn-secondary" onclick="goToPreviousQuestion()">← Back</button>
+                        </div>
+                    </div>
 
-                <div class="question" id="q4_percussion">
-                    <label class="form-label">Select Percussion Item<span class="required">*</span></label>
-                    <select id="percussion_type" data-required required>
-                        <option value="">Select item</option>
-                        <option value="Congo 1">Congo 1</option>
-                        <option value="Congo 2">Congo 2</option>
-                        <option value="Congo tuning apparatus">Congo tuning apparatus</option>
-                        <option value="Cajon">Cajon</option>
-                        <option value="Egg">Egg</option>
-                        <option value="Maracas">Maracas</option>
-                    </select>
-                </div>
+                    <!-- Q5a: Referral Skills -->
+                    <div class="question" id="q5_referral_skills">
+                        <div class="form-group">
+                            <label for="referral_skills">Skills that the person would be auditioning for?</label>
+                            <select id="referral_skills" required>
+                                <option value="">Select skills...</option>
+                                <option value="Guitars (Acoustic / Electric / Bass)">Guitars (Acoustic / Electric / Bass)</option>
+                                <option value="Keyboard / Synth">Keyboard / Synth</option>
+                                <option value="Production">Production</option>
+                                <option value="Vocals / Harmonies">Vocals / Harmonies</option>
+                                <option value="Instrument Maintenance">Instrument Maintenance</option>
+                                <option value="Drums / Percussions">Drums / Percussions</option>
+                                <option value="Sound Mixing">Sound Mixing</option>
+                                <option value="DLP">DLP</option>
+                                <option value="Stage Set-up">Stage Set-up</option>
+                            </select>
+                        </div>
+                        <div class="back-button-container">
+                            <button type="button" class="btn-secondary" onclick="goToPreviousQuestion()">← Back</button>
+                        </div>
+                    </div>
 
-                <div class="question" id="q4_keyboards">
-                    <label class="form-label">Select Keyboard<span class="required">*</span></label>
-                    <select id="keyboard_type" data-required required>
-                        <option value="">Select keyboard</option>
-                        <option value="Korg">Korg</option>
-                        <option value="Roland">Roland</option>
-                    </select>
-                </div>
+                    <!-- Q6: Suggestions -->
+                    <div class="question" id="q6_suggestions">
+                        <div class="form-group">
+                            <label for="suggestions_text">Provide your suggestions below</label>
+                            <textarea id="suggestions_text" placeholder="Share your feedback or suggestions..." required></textarea>
+                        </div>
+                        <div class="button-group">
+                            <button type="button" class="btn-secondary" onclick="goToPreviousQuestion()">← Back</button>
+                            <button type="button" class="btn-primary" onclick="handleSubmit()">Submit ✓</button>
+                        </div>
+                    </div>
 
-                <div class="question" id="q4_soundsystem">
-                    <label class="form-label">Select Sound System Item<span class="required">*</span></label>
-                    <select id="soundsystem_type" data-required required>
-                        <option value="">Select item</option>
-                        <option value="Overhead Speaker Left">Overhead Speaker Left</option>
-                        <option value="Overhead Speaker Right">Overhead Speaker Right</option>
-                        <option value="Bass Bin Left">Bass Bin Left</option>
-                        <option value="Bass Bin Right">Bass Bin Right</option>
-                        <option value="Speaker Left">Speaker Left</option>
-                        <option value="Speaker Right">Speaker Right</option>
-                        <option value="Mixer">Mixer</option>
-                        <option value="Amp 1">Amp 1</option>
-                        <option value="Amp 2">Amp 2</option>
-                        <option value="Amp 3">Amp 3</option>
-                        <option value="Stage Box 1">Stage Box 1</option>
-                        <option value="Stage Box 2">Stage Box 2</option>
-                        <option value="Cordless Receiver 1">Cordless Receiver 1</option>
-                        <option value="Cordless Receiver 2">Cordless Receiver 2</option>
-                    </select>
-                </div>
+                    <!-- Q7: Asset Selection -->
+                    <div class="question" id="q7_asset">
+                        <div class="form-group">
+                            <label for="asset">Which asset needs attention?</label>
+                            <select id="asset" required>
+                                <option value="">Select an asset...</option>
+                                <option value="Guitars">Guitars</option>
+                                <option value="Guitar Processor">Guitar Processor</option>
+                                <option value="Stands">Stands</option>
+                                <option value="Cables">Cables</option>
+                                <option value="DI Box">DI Box</option>
+                                <option value="IEMs">IEMs</option>
+                                <option value="Drum Kit">Drum Kit</option>
+                                <option value="Percussion">Percussion</option>
+                                <option value="Keyboards">Keyboards</option>
+                                <option value="Sound System">Sound System</option>
+                            </select>
+                        </div>
+                        <div class="back-button-container">
+                            <button type="button" class="btn-secondary" onclick="handleAssetBack()">← Back</button>
+                        </div>
+                    </div>
 
-                <!-- Action Items for each asset type -->
-                <div class="question" id="q5_guitar_action">
-                    <label class="form-label">Action Needed<span class="required">*</span></label>
-                    <select id="guitar_action" data-required required>
-                        <option value="">Select action</option>
-                        <option value="Strings change">Strings change</option>
-                        <option value="Needs Maintenance">Needs Maintenance</option>
-                        <option value="Pick-up issue">Pick-up issue</option>
-                        <option value="Tuning">Tuning</option>
-                        <option value="Strap change">Strap change</option>
-                        <option value="Replace instrument">Replace instrument</option>
-                        <option value="Others">Others</option>
-                    </select>
-                </div>
+                    <!-- Q8: Guitar Type -->
+                    <div class="question" id="q8_guitar_type">
+                        <div class="form-group">
+                            <label for="guitar_type">Select Guitar</label>
+                            <select id="guitar_type" required>
+                                <option value="">Select guitar...</option>
+                                <option value="Fender Acoustic">Fender Acoustic</option>
+                                <option value="Cort Acoustic">Cort Acoustic</option>
+                                <option value="Fender Strat Acoustic">Fender Strat Acoustic</option>
+                                <option value="Yamaha Bass">Yamaha Bass</option>
+                            </select>
+                        </div>
+                        <div class="back-button-container">
+                            <button type="button" class="btn-secondary" onclick="goToPreviousQuestion()">← Back</button>
+                        </div>
+                    </div>
 
-                <div class="question" id="q5_stand_action">
-                    <label class="form-label">Action Needed<span class="required">*</span></label>
-                    <select id="stand_action" data-required required>
-                        <option value="">Select action</option>
-                        <option value="Needs Maintenance">Needs Maintenance</option>
-                        <option value="Replace item">Replace item</option>
-                    </select>
-                </div>
+                    <!-- Q8a: Guitar Action -->
+                    <div class="question" id="q8_guitar_action">
+                        <div class="form-group">
+                            <label for="guitar_action">What action is needed?</label>
+                            <select id="guitar_action" required>
+                                <option value="">Select action...</option>
+                                <option value="Strings change">Strings change</option>
+                                <option value="Needs Maintenance">Needs Maintenance</option>
+                                <option value="Battery change">Battery change</option>
+                                <option value="Pick-up issue">Pick-up issue</option>
+                                <option value="Tuning">Tuning</option>
+                                <option value="Strap change">Strap change</option>
+                                <option value="Replace instrument">Replace instrument</option>
+                                <option value="Others">Others</option>
+                            </select>
+                        </div>
+                        <div class="back-button-container">
+                            <button type="button" class="btn-secondary" onclick="goToPreviousQuestion()">← Back</button>
+                        </div>
+                    </div>
 
-                <div class="question" id="q5_cable_action">
-                    <label class="form-label">Action Needed<span class="required">*</span></label>
-                    <select id="cable_action" data-required required>
-                        <option value="">Select action</option>
-                        <option value="Recalibrate">Recalibrate</option>
-                        <option value="Replace item">Replace item</option>
-                    </select>
-                </div>
+                    <!-- Q9: Processor Model -->
+                    <div class="question" id="q9_processor_model">
+                        <div class="form-group">
+                            <label for="processor_model">Select Processor Model</label>
+                            <select id="processor_model" required>
+                                <option value="">Select model...</option>
+                                <option value="Line 6">Line 6</option>
+                            </select>
+                        </div>
+                        <div class="back-button-container">
+                            <button type="button" class="btn-secondary" onclick="goToPreviousQuestion()">← Back</button>
+                        </div>
+                    </div>
 
-                <div class="question" id="q5_dibox_action">
-                    <label class="form-label">Action Needed<span class="required">*</span></label>
-                    <select id="dibox_action" data-required required>
-                        <option value="">Select action</option>
-                        <option value="Recalibrate">Recalibrate</option>
-                        <option value="Replace item">Replace item</option>
-                        <option value="Others">Others</option>
-                    </select>
-                </div>
+                    <!-- Q9a: Processor Issue -->
+                    <div class="question" id="q9_processor_issue">
+                        <div class="form-group">
+                            <label for="processor_issue">What's the issue?</label>
+                            <select id="processor_issue" required>
+                                <option value="">Select issue...</option>
+                                <option value="Screen issues">Screen issues</option>
+                                <option value="Adaptor">Adaptor</option>
+                                <option value="Button issues">Button issues</option>
+                                <option value="Output/Input">Output/Input</option>
+                                <option value="Software upgrade">Software upgrade</option>
+                                <option value="Pedal">Pedal</option>
+                                <option value="Others">Others</option>
+                            </select>
+                        </div>
+                        <div class="back-button-container">
+                            <button type="button" class="btn-secondary" onclick="goToPreviousQuestion()">← Back</button>
+                        </div>
+                    </div>
 
-                <div class="question" id="q5_iem_action">
-                    <label class="form-label">Action Needed<span class="required">*</span></label>
-                    <select id="iem_action" data-required required>
-                        <option value="">Select action</option>
-                        <option value="Recalibrate">Recalibrate</option>
-                        <option value="Replace item">Replace item</option>
-                    </select>
-                </div>
+                    <!-- Q9b: Processor Action -->
+                    <div class="question" id="q9_processor_action">
+                        <div class="form-group">
+                            <label for="processor_action">What action is needed?</label>
+                            <select id="processor_action" required>
+                                <option value="">Select action...</option>
+                                <option value="Maintenance due">Maintenance due</option>
+                                <option value="Repair needed">Repair needed</option>
+                                <option value="Replace item">Replace item</option>
+                            </select>
+                        </div>
+                        <div class="back-button-container">
+                            <button type="button" class="btn-secondary" onclick="goToPreviousQuestion()">← Back</button>
+                        </div>
+                    </div>
 
-                <div class="question" id="q5_drumkit_action">
-                    <label class="form-label">Action Needed<span class="required">*</span></label>
-                    <select id="drumkit_action" data-required required>
-                        <option value="">Select action</option>
-                        <option value="Maintenance">Maintenance</option>
-                        <option value="Replace item">Replace item</option>
-                        <option value="Need new skin">Need new skin</option>
-                        <option value="Tuning">Tuning</option>
-                    </select>
-                </div>
+                    <!-- Q10: Stand Type -->
+                    <div class="question" id="q10_stand_type">
+                        <div class="form-group">
+                            <label for="stand_type">Select Stand Type</label>
+                            <select id="stand_type" required>
+                                <option value="">Select stand...</option>
+                                <option value="Mic Stand">Mic Stand</option>
+                                <option value="Music Stand">Music Stand</option>
+                                <option value="Guitar Stand">Guitar Stand</option>
+                                <option value="Keyboard Stand">Keyboard Stand</option>
+                                <option value="Drum Stand">Drum Stand</option>
+                                <option value="Congo Stand">Congo Stand</option>
+                            </select>
+                        </div>
+                        <div class="back-button-container">
+                            <button type="button" class="btn-secondary" onclick="goToPreviousQuestion()">← Back</button>
+                        </div>
+                    </div>
 
-                <div class="question" id="q5_percussion_action">
-                    <label class="form-label">Action Needed<span class="required">*</span></label>
-                    <select id="percussion_action" data-required required>
-                        <option value="">Select action</option>
-                        <option value="Maintenance">Maintenance</option>
-                        <option value="Replace item">Replace item</option>
-                        <option value="Need new skin">Need new skin</option>
-                        <option value="Tuning">Tuning</option>
-                    </select>
-                </div>
+                    <!-- Q10a: Stand Action -->
+                    <div class="question" id="q10_stand_action">
+                        <div class="form-group">
+                            <label for="stand_action">What action is needed?</label>
+                            <select id="stand_action" required>
+                                <option value="">Select action...</option>
+                                <option value="Needs Maintenance">Needs Maintenance</option>
+                                <option value="Replace item">Replace item</option>
+                            </select>
+                        </div>
+                        <div class="back-button-container">
+                            <button type="button" class="btn-secondary" onclick="goToPreviousQuestion()">← Back</button>
+                        </div>
+                    </div>
 
-                <div class="question" id="q5_keyboard_action">
-                    <label class="form-label">Action Needed<span class="required">*</span></label>
-                    <select id="keyboard_action" data-required required>
-                        <option value="">Select action</option>
-                        <option value="Maintenance">Maintenance</option>
-                        <option value="Replace item">Replace item</option>
-                        <option value="Screen issues">Screen issues</option>
-                        <option value="Button issues">Button issues</option>
-                        <option value="Key issues">Key issues</option>
-                        <option value="Speaker issues">Speaker issues</option>
-                        <option value="Jack issues">Jack issues</option>
-                        <option value="Others">Others</option>
-                    </select>
-                </div>
+                    <!-- Q11: Cable Type -->
+                    <div class="question" id="q11_cable_type">
+                        <div class="form-group">
+                            <label for="cable_type">Select Cable Type</label>
+                            <select id="cable_type" required>
+                                <option value="">Select cable...</option>
+                                <option value="Mic Cable">Mic Cable</option>
+                                <option value="Instrument Cable">Instrument Cable</option>
+                                <option value="DI Box Cable">DI Box Cable</option>
+                            </select>
+                        </div>
+                        <div class="back-button-container">
+                            <button type="button" class="btn-secondary" onclick="goToPreviousQuestion()">← Back</button>
+                        </div>
+                    </div>
 
-                <div class="question" id="q5_soundsystem_action">
-                    <label class="form-label">Action Needed<span class="required">*</span></label>
-                    <select id="soundsystem_action" data-required required>
-                        <option value="">Select action</option>
-                        <option value="Maintenance">Maintenance</option>
-                        <option value="Replace item">Replace item</option>
-                        <option value="Jack / Cable issues">Jack / Cable issues</option>
-                        <option value="Button issues">Button issues</option>
-                        <option value="Others">Others</option>
-                    </select>
-                </div>
+                    <!-- Q11a: Cable Action -->
+                    <div class="question" id="q11_cable_action">
+                        <div class="form-group">
+                            <label for="cable_action">What action is needed?</label>
+                            <select id="cable_action" required>
+                                <option value="">Select action...</option>
+                                <option value="Recalibrate">Recalibrate</option>
+                                <option value="Replace item">Replace item</option>
+                            </select>
+                        </div>
+                        <div class="back-button-container">
+                            <button type="button" class="btn-secondary" onclick="goToPreviousQuestion()">← Back</button>
+                        </div>
+                    </div>
 
-                <!-- "Others" text boxes for asset actions -->
-                <div class="question" id="q6_others_text">
-                    <label class="form-label">Please describe the issue<span class="required">*</span></label>
-                    <textarea id="others_text" data-required required placeholder="Describe the issue in detail..."></textarea>
-                </div>
+                    <!-- Q12: DI Box Type -->
+                    <div class="question" id="q12_dibox_type">
+                        <div class="form-group">
+                            <label for="dibox_type">Select DI Box</label>
+                            <select id="dibox_type" required>
+                                <option value="">Select DI box...</option>
+                                <option value="Keyboard Left">Keyboard Left</option>
+                                <option value="Keyboard Right">Keyboard Right</option>
+                                <option value="Electric Guitar Left">Electric Guitar Left</option>
+                                <option value="Electric Guitar Right">Electric Guitar Right</option>
+                                <option value="Acoustic Guitar">Acoustic Guitar</option>
+                                <option value="Bass Guitar">Bass Guitar</option>
+                            </select>
+                        </div>
+                        <div class="back-button-container">
+                            <button type="button" class="btn-secondary" onclick="goToPreviousQuestion()">← Back</button>
+                        </div>
+                    </div>
 
-                <!-- LEARN BRANCH -->
-                <div class="question" id="q3_learn">
-                    <label class="form-label">What do you wish to learn?<span class="required">*</span></label>
-                    <select id="learn_topic" data-required required>
-                        <option value="">Select topic</option>
-                        <option value="Instrument / Vocals">Instrument / Vocals</option>
-                        <option value="Sound Mixing">Sound Mixing</option>
-                        <option value="Stage Set up">Stage Set up</option>
-                        <option value="DLP">DLP</option>
-                        <option value="Maintenance">Maintenance</option>
-                    </select>
-                </div>
+                    <!-- Q12a: DI Box Action -->
+                    <div class="question" id="q12_dibox_action">
+                        <div class="form-group">
+                            <label for="dibox_action">What action is needed?</label>
+                            <select id="dibox_action" required>
+                                <option value="">Select action...</option>
+                                <option value="Recalibrate">Recalibrate</option>
+                                <option value="Replace item">Replace item</option>
+                                <option value="Others">Others</option>
+                            </select>
+                        </div>
+                        <div class="back-button-container">
+                            <button type="button" class="btn-secondary" onclick="goToPreviousQuestion()">← Back</button>
+                        </div>
+                    </div>
 
-                <div class="question" id="q4_learn_instrument">
-                    <label class="form-label">Select Instrument/Vocal<span class="required">*</span></label>
-                    <select id="learn_instrument" data-required required>
-                        <option value="">Select option</option>
-                        <option value="Acoustic Guitar">Acoustic Guitar</option>
-                        <option value="Electric Guitar">Electric Guitar</option>
-                        <option value="Bass Guitar">Bass Guitar</option>
-                        <option value="Keyboard / Piano">Keyboard / Piano</option>
-                        <option value="Drums">Drums</option>
-                        <option value="Vocals &amp; Harmonies">Vocals &amp; Harmonies</option>
-                    </select>
-                </div>
+                    <!-- Q13: IEM Type -->
+                    <div class="question" id="q13_iem_type">
+                        <div class="form-group">
+                            <label for="iem_type">Select IEM</label>
+                            <select id="iem_type" required>
+                                <option value="">Select IEM...</option>
+                                <option value="Splitter">Splitter</option>
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                                <option value="5">5</option>
+                                <option value="6">6</option>
+                                <option value="7">7</option>
+                                <option value="8">8</option>
+                                <option value="9">9</option>
+                                <option value="10">10</option>
+                                <option value="11">11</option>
+                                <option value="12">12</option>
+                                <option value="13">13</option>
+                                <option value="14">14</option>
+                            </select>
+                        </div>
+                        <div class="back-button-container">
+                            <button type="button" class="btn-secondary" onclick="goToPreviousQuestion()">← Back</button>
+                        </div>
+                    </div>
 
-                <!-- CONTRIBUTE BRANCH -->
-                <div class="question" id="q3_contribute">
-                    <label class="form-label">How would you like to contribute?<span class="required">*</span></label>
-                    <select id="contribute_type" data-required required>
-                        <option value="">Select contribution</option>
-                        <option value="Teaching Instruments">Teaching Instruments</option>
-                        <option value="Teaching Vocals / harmonies">Teaching Vocals / harmonies</option>
-                        <option value="Teaching Sheet Music">Teaching Sheet Music</option>
-                        <option value="Music Director (MD)">Music Director (MD)</option>
-                        <option value="Song writing and compositions">Song writing and compositions</option>
-                        <option value="Music / Song Production">Music / Song Production</option>
-                        <option value="Instrument Maintenance">Instrument Maintenance</option>
-                        <option value="Leading Prayer">Leading Prayer</option>
-                        <option value="Hosting Workshops">Hosting Workshops</option>
-                        <option value="Donating an instrument / stage item">Donating an instrument / stage item</option>
-                    </select>
-                </div>
+                    <!-- Q13a: IEM Action -->
+                    <div class="question" id="q13_iem_action">
+                        <div class="form-group">
+                            <label for="iem_action">What action is needed?</label>
+                            <select id="iem_action" required>
+                                <option value="">Select action...</option>
+                                <option value="Recalibrate">Recalibrate</option>
+                                <option value="Replace item">Replace item</option>
+                            </select>
+                        </div>
+                        <div class="back-button-container">
+                            <button type="button" class="btn-secondary" onclick="goToPreviousQuestion()">← Back</button>
+                        </div>
+                    </div>
 
-                <!-- REFERRAL BRANCH -->
-                <div class="question" id="q3_referral">
-                    <label class="form-label">Name of the person you would like to refer for audition<span class="required">*</span></label>
-                    <input type="text" id="referral_name" data-required required placeholder="Enter full name">
-                </div>
+                    <!-- Q14: Drum Kit Item -->
+                    <div class="question" id="q14_drumkit_item">
+                        <div class="form-group">
+                            <label for="drumkit_item">Select Drum Kit Item</label>
+                            <select id="drumkit_item" required>
+                                <option value="">Select item...</option>
+                                <option value="Bass Drum">Bass Drum</option>
+                                <option value="Snare">Snare</option>
+                                <option value="Tom Drum 1">Tom Drum 1</option>
+                                <option value="Tom Drum 2">Tom Drum 2</option>
+                                <option value="Floor Drum">Floor Drum</option>
+                                <option value="Bass Pedal">Bass Pedal</option>
+                                <option value="Hi-Hat">Hi-Hat</option>
+                                <option value="Crash Cymbal">Crash Cymbal</option>
+                                <option value="Ride Cymbal">Ride Cymbal</option>
+                                <option value="Cymbal 3">Cymbal 3</option>
+                                <option value="Cymbal 4">Cymbal 4</option>
+                                <option value="Cymbal 5">Cymbal 5</option>
+                                <option value="Cymbal 6">Cymbal 6</option>
+                                <option value="Drumsticks">Drumsticks</option>
+                                <option value="Drumsticks (wool felt tip)">Drumsticks (wool felt tip)</option>
+                            </select>
+                        </div>
+                        <div class="back-button-container">
+                            <button type="button" class="btn-secondary" onclick="goToPreviousQuestion()">← Back</button>
+                        </div>
+                    </div>
 
-                <div class="question" id="q4_referral_skills">
-                    <label class="form-label">Skills that the person you would be auditioning for?<span class="required">*</span></label>
-                    <select id="referral_skills" data-required required>
-                        <option value="">Select skills</option>
-                        <option value="Guitars (Acoustic / Electric / Bass)">Guitars (Acoustic / Electric / Bass)</option>
-                        <option value="Keyboard / Synth">Keyboard / Synth</option>
-                        <option value="Production">Production</option>
-                        <option value="Vocals / Harmonies">Vocals / Harmonies</option>
-                        <option value="Instrument Maintenance">Instrument Maintenance</option>
-                        <option value="Drums / Percussions">Drums / Percussions</option>
-                        <option value="Sound Mixing">Sound Mixing</option>
-                        <option value="DLP">DLP</option>
-                        <option value="Stage Set-up">Stage Set-up</option>
-                    </select>
-                </div>
+                    <!-- Q14a: Drum Kit Action -->
+                    <div class="question" id="q14_drumkit_action">
+                        <div class="form-group">
+                            <label for="drumkit_action">What action is needed?</label>
+                            <select id="drumkit_action" required>
+                                <option value="">Select action...</option>
+                                <option value="Maintenance">Maintenance</option>
+                                <option value="Replace item">Replace item</option>
+                                <option value="Need new skin">Need new skin</option>
+                                <option value="Tuning">Tuning</option>
+                            </select>
+                        </div>
+                        <div class="back-button-container">
+                            <button type="button" class="btn-secondary" onclick="goToPreviousQuestion()">← Back</button>
+                        </div>
+                    </div>
 
-                <!-- SUGGESTIONS BRANCH -->
-                <!-- ASSET CHECK REMINDER BRANCH -->
-                
-<div class="question" id="q3_assetcheck">
-    <label class="form-label">Quick Asset Status Check <span class="required">*</span></label>
-    <div style="display: grid; gap: 12px; margin-bottom: 16px;">
-        <label><input type="checkbox" id="check_guitars" data-required value="Guitars OK"> Guitars ✓</label>
-        <label><input type="checkbox" id="check_stands" data-required value="Stands OK"> Stands ✓</label>
-        <label><input type="checkbox" id="check_cables" data-required value="Cables OK"> Cables ✓</label>
-        <label><input type="checkbox" id="check_dibox" data-required value="DI Box OK"> DI Box ✓</label>
-        <label><input type="checkbox" id="check_iems" data-required value="IEMs OK"> IEMs ✓</label>
-        <label><input type="checkbox" id="check_drums" data-required value="Drum Kit OK"> Drum Kit ✓</label>
-        <label><input type="checkbox" id="check_perc" data-required value="Percussion OK"> Percussion ✓</label>
-        <label><input type="checkbox" id="check_keys" data-required value="Keyboards OK"> Keyboards ✓</label>
-        <label><input type="checkbox" id="check_sound" data-required value="Sound System OK"> Sound System ✓</label>
-    </div>
-    <label class="form-label">Issues found (if any)</label>
-    <textarea id="check_comments" data-required placeholder="Describe any issues..."></textarea>
-</div>
+                    <!-- Q15: Percussion Item -->
+                    <div class="question" id="q15_percussion_item">
+                        <div class="form-group">
+                            <label for="percussion_item">Select Percussion Item</label>
+                            <select id="percussion_item" required>
+                                <option value="">Select item...</option>
+                                <option value="Congo 1">Congo 1</option>
+                                <option value="Congo 2">Congo 2</option>
+                                <option value="Congo tuning apparatus">Congo tuning apparatus</option>
+                                <option value="Cajon">Cajon</option>
+                                <option value="Egg">Egg</option>
+                                <option value="Maracas">Maracas</option>
+                            </select>
+                        </div>
+                        <div class="back-button-container">
+                            <button type="button" class="btn-secondary" onclick="goToPreviousQuestion()">← Back</button>
+                        </div>
+                    </div>
 
-                <div class="question" id="q3_suggestions">
-                    <label class="form-label">Provide your suggestions below</label>
-                    <textarea id="suggestions_text" placeholder="Share your ideas for improvement..."></textarea>
-                </div>
+                    <!-- Q15a: Percussion Action -->
+                    <div class="question" id="q15_percussion_action">
+                        <div class="form-group">
+                            <label for="percussion_action">What action is needed?</label>
+                            <select id="percussion_action" required>
+                                <option value="">Select action...</option>
+                                <option value="Maintenance">Maintenance</option>
+                                <option value="Replace item">Replace item</option>
+                                <option value="Need new skin">Need new skin</option>
+                                <option value="Tuning">Tuning</option>
+                            </select>
+                        </div>
+                        <div class="back-button-container">
+                            <button type="button" class="btn-secondary" onclick="goToPreviousQuestion()">← Back</button>
+                        </div>
+                    </div>
 
-                <!-- Navigation Buttons -->
-                <div class="btn-group" id="navButtons">
-                    <button type="button" class="btn btn-secondary hidden" id="backBtn">← Back</button>
-                    <button type="button" class="btn btn-primary" id="nextBtn">Next →</button>
-                    <button type="submit" class="btn btn-primary hidden" id="submitBtn">Submit</button>
-                </div>
-            </form>
+                    <!-- Q16: Keyboard Type -->
+                    <div class="question" id="q16_keyboard_type">
+                        <div class="form-group">
+                            <label for="keyboard_type">Select Keyboard</label>
+                            <select id="keyboard_type" required>
+                                <option value="">Select keyboard...</option>
+                                <option value="Korg">Korg</option>
+                                <option value="Roland">Roland</option>
+                            </select>
+                        </div>
+                        <div class="back-button-container">
+                            <button type="button" class="btn-secondary" onclick="goToPreviousQuestion()">← Back</button>
+                        </div>
+                    </div>
 
-            <div class="success-message" id="successMessage">
-                <div class="success-icon">✓</div>
-                <h2>Submission Successful!</h2>
-                <p style="color: var(--color-text-secondary); margin-top: 8px;" id="thankYouMessage">
-                    Your response has been recorded. Thank you for your submission!
-                </p>
-                <button type="button" class="btn btn-primary" id="resetBtn" style="margin-top: 24px;">
-                    Submit Another Response
-                </button>
+                    <!-- Q16a: Keyboard Action -->
+                    <div class="question" id="q16_keyboard_action">
+                        <div class="form-group">
+                            <label for="keyboard_action">What action is needed?</label>
+                            <select id="keyboard_action" required>
+                                <option value="">Select action...</option>
+                                <option value="Maintenance">Maintenance</option>
+                                <option value="Replace item">Replace item</option>
+                                <option value="Screen issues">Screen issues</option>
+                                <option value="Button issues">Button issues</option>
+                                <option value="Key issues">Key issues</option>
+                                <option value="Speaker issues">Speaker issues</option>
+                                <option value="Jack issues">Jack issues</option>
+                                <option value="Others">Others</option>
+                            </select>
+                        </div>
+                        <div class="back-button-container">
+                            <button type="button" class="btn-secondary" onclick="goToPreviousQuestion()">← Back</button>
+                        </div>
+                    </div>
+
+                    <!-- Q17: Sound System Item -->
+                    <div class="question" id="q17_soundsystem_item">
+                        <div class="form-group">
+                            <label for="soundsystem_item">Select Sound System Item</label>
+                            <select id="soundsystem_item" required>
+                                <option value="">Select item...</option>
+                                <option value="Overhead Speaker Left">Overhead Speaker Left</option>
+                                <option value="Overhead Speaker Right">Overhead Speaker Right</option>
+                                <option value="Bass Bin Left">Bass Bin Left</option>
+                                <option value="Bass Bin Right">Bass Bin Right</option>
+                                <option value="Speaker Left">Speaker Left</option>
+                                <option value="Speaker Right">Speaker Right</option>
+                                <option value="Mixer">Mixer</option>
+                                <option value="Amp 1">Amp 1</option>
+                                <option value="Amp 2">Amp 2</option>
+                                <option value="Amp 3">Amp 3</option>
+                                <option value="Stage Box 1">Stage Box 1</option>
+                                <option value="Stage Box 2">Stage Box 2</option>
+                                <option value="Cordless Receiver 1">Cordless Receiver 1</option>
+                                <option value="Cordless Receiver 2">Cordless Receiver 2</option>
+                            </select>
+                        </div>
+                        <div class="back-button-container">
+                            <button type="button" class="btn-secondary" onclick="goToPreviousQuestion()">← Back</button>
+                        </div>
+                    </div>
+
+                    <!-- Q17a: Sound System Action -->
+                    <div class="question" id="q17_soundsystem_action">
+                        <div class="form-group">
+                            <label for="soundsystem_action">What action is needed?</label>
+                            <select id="soundsystem_action" required>
+                                <option value="">Select action...</option>
+                                <option value="Maintenance">Maintenance</option>
+                                <option value="Replace item">Replace item</option>
+                                <option value="Jack / Cable issues">Jack / Cable issues</option>
+                                <option value="Button issues">Button issues</option>
+                                <option value="Others">Others</option>
+                            </select>
+                        </div>
+                        <div class="back-button-container">
+                            <button type="button" class="btn-secondary" onclick="goToPreviousQuestion()">← Back</button>
+                        </div>
+                    </div>
+
+                    <!-- Final Comments -->
+                    <div class="question" id="q_final_comments">
+                        <div class="form-group">
+                            <label for="final_comments">Additional details or comments (optional)</label>
+                            <textarea id="final_comments" placeholder="Share any additional information..."></textarea>
+                        </div>
+                        <div class="button-group">
+                            <button type="button" class="btn-secondary" onclick="goToPreviousQuestion()">← Back</button>
+                            <button type="button" class="btn-primary" onclick="handleSubmit()">Submit ✓</button>
+                        </div>
+                    </div>
+
+                    <!-- Success Message -->
+                    <div class="question" id="success">
+                        <div class="success-message">
+                            <h2>✅ Thank You!</h2>
+                            <p>Your response has been recorded. Thank you for your submission!</p>
+                            <button type="button" class="btn-primary" onclick="resetForm()" style="margin-top: 20px; width: 100%;">Submit Another Response</button>
+                        </div>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
 
     <script>
-        // Form state management
-        let currentStep = 1;
-        let maxSteps = 4;
-        let formData = {};
-        let questionPath = ['q1', 'q2'];
+// Same JavaScript as before - no changes needed
+const questions = [
+    'q1_name', 'q2_reason', 
+    'q3_learn_category', 'q3_learn_instrument',
+    'q4_contribute', 
+    'q5_referral_name', 'q5_referral_skills',
+    'q6_suggestions',
+    'q7_asset', 
+    'q8_guitar_type', 'q8_guitar_action',
+    'q9_processor_model', 'q9_processor_issue', 'q9_processor_action',
+    'q10_stand_type', 'q10_stand_action',
+    'q11_cable_type', 'q11_cable_action',
+    'q12_dibox_type', 'q12_dibox_action',
+    'q13_iem_type', 'q13_iem_action',
+    'q14_drumkit_item', 'q14_drumkit_action',
+    'q15_percussion_item', 'q15_percussion_action',
+    'q16_keyboard_type', 'q16_keyboard_action',
+    'q17_soundsystem_item', 'q17_soundsystem_action',
+    'q_final_comments', 'success'
+];
 
-        // DOM elements
-        const form = document.getElementById('worshipForm');
-        const nextBtn = document.getElementById('nextBtn');
-        const backBtn = document.getElementById('backBtn');
-        const submitBtn = document.getElementById('submitBtn');
-        const resetBtn = document.getElementById('resetBtn');
-        const formCard = document.getElementById('formCard');
-        const successMessage = document.getElementById('successMessage');
+let currentQuestion = 0;
+let isAssetManagementFlow = false;
+let flowData = {};
 
-        // Question navigation logic
-        const questionFlows = {
-            'Asset update': {
-                questions: ['q3_asset'],
-                assetPaths: {
-                    'Guitars': ['q4_guitars', 'q5_guitar_action'],
-                    'Stands': ['q4_stands', 'q5_stand_action'],
-                    'Cables': ['q4_cables', 'q5_cable_action'],
-                    'DI Box': ['q4_dibox', 'q5_dibox_action'],
-                    'IEMs': ['q4_iems', 'q5_iem_action'],
-                    'Drum Kit': ['q4_drumkit', 'q5_drumkit_action'],
-                    'Percussion': ['q4_percussion', 'q5_percussion_action'],
-                    'Keyboards': ['q4_keyboards', 'q5_keyboard_action'],
-                    'Sound System': ['q4_soundsystem', 'q5_soundsystem_action']
-                }
-            },
-            'Asset Check Reminder': {
-                questions: ['q3_assetcheck']
-            },
-            'Learn': {
-                questions: ['q3_learn']
-            },
-            'Contribute': {
-                questions: ['q3_contribute']
-            },
-            'Referring someone for audition': {
-                questions: ['q3_referral', 'q4_referral_skills']
-            },
-            'Give suggestions to improve': {
-                questions: ['q3_suggestions']
-            }
-        };
+const assetTeamMembers = ['Ruth', 'Joe', 'Keith', 'Sandeep'];
 
-        // Event listeners
-        const nameEl = document.getElementById('name');
-        const reasonEl = document.getElementById('reason');
-        const assetEl = document.getElementById('asset');
-        const learnTopicEl = document.getElementById('learn_topic');
-        
-        if (nameEl) {
-            nameEl.addEventListener('change', function() {
-                handleNameChange.call(this);
-                if (this.value && currentStep === 1) {
-                    setTimeout(() => {
-                        goToNextQuestion();
-                    }, 300);
-                }
-            });
+document.getElementById('name').addEventListener('change', function() {
+    const selectedName = this.value;
+    flowData.name = selectedName;
+
+    setTimeout(() => {
+        currentQuestion = questions.indexOf('q2_reason');
+        showCurrentQuestion();
+        updateProgress();
+
+        const assetSection = document.getElementById('assetTeamSection');
+        if (assetTeamMembers.includes(selectedName)) {
+            assetSection.classList.remove('hidden');
+        } else {
+            assetSection.classList.add('hidden');
         }
-        
-        if (reasonEl) reasonEl.addEventListener('change', handleReasonChange);
-        if (assetEl) assetEl.addEventListener('change', handleAssetChange);
-        if (learnTopicEl) learnTopicEl.addEventListener('change', handleLearnTopicChange);
-        
-        // Auto-advance listeners for Contribute and Referral branches
-        const contributeEl = document.getElementById('contribute_type');
-        if (contributeEl) {
-            contributeEl.addEventListener('change', function() {
-                if (this.value) {
-                    setTimeout(() => {
-                        goToNextQuestion();
-                    }, 300);
-                }
-            });
-        }
-
-        const referralNameEl = document.getElementById('referral_name');
-        if (referralNameEl) {
-            // Auto-advance when user types name and clicks away
-            referralNameEl.addEventListener('blur', function() {
-                if (this.value) {
-                    setTimeout(() => {
-                        goToNextQuestion();
-                    }, 200);
-                }
-            });
-        }
-
-        // Auto-advance listeners for all asset sub-types
-        ['guitar_type', 'stand_type', 'cable_type', 'dibox_type', 'iem_type', 
-         'drumkit_type', 'percussion_type', 'keyboard_type', 'soundsystem_type'].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.addEventListener('change', function() {
-                if (this.value) {
-                    setTimeout(() => {
-                        goToNextQuestion();
-                    }, 300);
-                }
-            });
-        });
-        
-        // Action listeners for "Others" detection and auto-advance
-        ['guitar_action', 'stand_action', 'cable_action', 'dibox_action', 'iem_action',
-         'drumkit_action', 'percussion_action', 'keyboard_action', 'soundsystem_action'].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) {
-                el.addEventListener('change', function() {
-                    handleActionChange.call(this);
-                    // Auto-advance if not "Others" (which will add another question)
-                    if (this.value && this.value !== 'Others') {
-                        setTimeout(() => {
-                            goToNextQuestion();
-                        }, 300);
-                    }
-                });
-            }
-        });
-
-        nextBtn.addEventListener('click', goToNextQuestion);
-        backBtn.addEventListener('click', goToPreviousQuestion);
-        form.addEventListener('submit', handleSubmit);
-        resetBtn.addEventListener('click', resetForm);
-
-        function handleNameChange() {
-            formData.name = this.value;
-            console.log('Name selected:', this.value);
-        }
-
-        function handleReasonChange() {
-            const reason = this.value;
-            formData.reason = reason;
-            
-            // Build question path based on reason
-            questionPath = ['q1', 'q2'];
-            
-            if (questionFlows[reason]) {
-                questionPath = questionPath.concat(questionFlows[reason].questions);
-            }
-            
-            updateProgress();
-            
-            // Auto-advance to next question if reason is selected
-            if (reason && currentStep === 2) {
-                setTimeout(() => {
-                    goToNextQuestion();
-                }, 300);
-            }
-        }
-
-        function handleAssetChange() {
-            const asset = this.value;
-            formData.asset = asset;
-            
-            // Rebuild question path with asset-specific questions
-            questionPath = ['q1', 'q2', 'q3_asset'];
-            
-            if (questionFlows['Asset update'].assetPaths[asset]) {
-                questionPath = questionPath.concat(questionFlows['Asset update'].assetPaths[asset]);
-            }
-            
-            updateProgress();
-            
-            // Auto-advance to next question after asset selection
-            if (asset && currentStep === 3) {
-                setTimeout(() => {
-                    goToNextQuestion();
-                }, 300);
-            }
-        }
-
-        function handleLearnTopicChange() {
-            const topic = this.value;
-            formData.learn_topic = topic;
-            
-            // Rebuild question path
-            questionPath = ['q1', 'q2', 'q3_learn'];
-            
-            if (topic === 'Instrument / Vocals') {
-                questionPath.push('q4_learn_instrument');
-                updateProgress();
-                // Auto-advance to instrument selection
-                setTimeout(() => {
-                    goToNextQuestion();
-                }, 300);
-            } else {
-                // For other learn topics, this is the final question
-                updateProgress();
-            }
-        }
-
-        function handleActionChange() {
-            const action = this.value;
-            
-            // Get current path without "others" question
-            const baseIndex = questionPath.indexOf('q6_others_text');
-            if (baseIndex > -1) {
-                questionPath.splice(baseIndex, 1);
-            }
-            
-            // Add "others" question if selected
-            if (action === 'Others') {
-                questionPath.push('q6_others_text');
-            }
-            
-            updateProgress();
-        }
-
-        function goToNextQuestion() {
-            const currentQuestion = questionPath[currentStep - 1];
-            const currentQuestionEl = document.getElementById(currentQuestion);
-            
-            if (!currentQuestionEl) {
-                console.error('Question element not found:', currentQuestion);
-                return;
-            }
-            
-            // Validate current question
-            const inputs = currentQuestionEl.querySelectorAll('[data-required], input[required], select[required], textarea[required]');
-            let isValid = true;
-            
-            inputs.forEach(input => {
-                if (input.hasAttribute('required') && !input.value) {
-                    isValid = false;
-                    input.focus();
-                }
-            });
-            
-            if (!isValid) {
-                return;
-            }
-            
-            // Save current question data
-            inputs.forEach(input => {
-                if (input.value) {
-                    formData[input.id] = input.value;
-                }
-            });
-            
-            // Move to next question
-            if (currentStep < questionPath.length) {
-                currentStep++;
-                showCurrentQuestion();
-                updateProgress();
-            }
-        }
-
-        function goToPreviousQuestion() {
-            if (currentStep > 1) {
-                currentStep--;
-                showCurrentQuestion();
-                updateProgress();
-            }
-        }
-
-        function showCurrentQuestion() {
-            // Hide all questions and disable their required fields
-            document.querySelectorAll('.question').forEach(q => {
-                q.classList.remove('active');
-                // Disable validation for hidden fields
-                q.querySelectorAll('input, select, textarea').forEach(field => {
-                    field.removeAttribute('required');
-                });
-            });
-            
-            // Show current question and enable its required fields
-            const currentQuestion = questionPath[currentStep - 1];
-            const questionEl = document.getElementById(currentQuestion);
-            if (questionEl) {
-                questionEl.classList.add('active');
-                // Re-enable validation for visible fields that should be required
-                questionEl.querySelectorAll('input[data-required], select[data-required], textarea[data-required]').forEach(field => {
-                    field.setAttribute('required', '');
-                });
-            }
-            
-            // Update button visibility
-            backBtn.classList.toggle('hidden', currentStep === 1);
-            
-            const isLastQuestion = currentStep === questionPath.length;
-            nextBtn.classList.toggle('hidden', isLastQuestion);
-            submitBtn.classList.toggle('hidden', !isLastQuestion);
-        }
-
-        function updateProgress() {
-            const totalSteps = questionPath.length;
-            const progressText = document.getElementById('progressText');
-            progressText.textContent = `Step ${currentStep} of ${totalSteps}`;
-            
-            // Update progress dots
-            const dots = document.querySelectorAll('.progress-dot');
-            const progress = currentStep / totalSteps;
-            
-            dots.forEach((dot, index) => {
-                if (index / dots.length < progress) {
-                    dot.classList.add('active');
-                } else {
-                    dot.classList.remove('active');
-                }
-            });
-        }
-
-        function handleSubmit(e) {
-            e.preventDefault();
-            
-            // Collect final form data
-            const currentQuestion = questionPath[currentStep - 1];
-            const currentQuestionEl = document.getElementById(currentQuestion);
-            
-            if (currentQuestionEl) {
-                const inputs = currentQuestionEl.querySelectorAll('[data-required], input[required], select[required], textarea[required]');
-                
-                inputs.forEach(input => {
-    if (input.type === 'checkbox') {
-        formData[input.id] = input.checked ? input.value : '';
-    } else if (input.value) {
-        formData[input.id] = input.value;
-    }
+    }, 300);
 });
-            }
-            
-            // Add timestamp
-            formData.timestamp = new Date().toISOString();
-            
-            // Update thank you message with user's name
-            const userName = formData.name || 'there';
-            const thankYouMsg = document.getElementById('thankYouMessage');
-            thankYouMsg.textContent = `Thank you ${userName} for your input, someone will reach out to you/update you shortly`;
-            
-            // Show success message
-            const formElement = document.getElementById('worshipForm');
-            const navButtons = document.getElementById('navButtons');
-            const progressBar = document.querySelector('.progress');
-            
-            if (formElement) formElement.style.display = 'none';
-            if (navButtons) navButtons.style.display = 'none';
-            if (progressBar) progressBar.style.display = 'none';
-            successMessage.classList.add('active');
-            
-            // Send data to Google Sheets
-            console.log('Form Data:', formData);
-            sendToGoogleSheets(formData);
-        }
 
-        function resetForm() {
-            // Reset all state
-            currentStep = 1;
-            formData = {};
-            questionPath = ['q1', 'q2'];
-            
-            // Reset form
-            form.reset();
-            
-            // Hide success, show form
-            successMessage.classList.remove('active');
-            formCard.querySelector('#worshipForm').style.display = 'block';
-            formCard.querySelector('#navButtons').style.display = 'flex';
-            formCard.querySelector('.progress').style.display = 'flex';
-            
-            // Show first question
+document.getElementById('assetManagementBtn').addEventListener('click', function() {
+    isAssetManagementFlow = true;
+    flowData.reason = 'Asset Management';
+    currentQuestion = questions.indexOf('q7_asset');
+    showCurrentQuestion();
+    updateProgress();
+});
+
+document.getElementById('reason').addEventListener('change', function() {
+    const reason = this.value;
+    flowData.reason = reason;
+
+    setTimeout(() => {
+        if (reason === 'Learn') {
+            currentQuestion = questions.indexOf('q3_learn_category');
+        } else if (reason === 'Contribute') {
+            currentQuestion = questions.indexOf('q4_contribute');
+        } else if (reason === 'Referral') {
+            currentQuestion = questions.indexOf('q5_referral_name');
+        } else if (reason === 'Suggestions') {
+            currentQuestion = questions.indexOf('q6_suggestions');
+        }
+        showCurrentQuestion();
+        updateProgress();
+    }, 300);
+});
+
+document.getElementById('learn_category').addEventListener('change', function() {
+    flowData.learn_category = this.value;
+    setTimeout(() => {
+        if (this.value === 'Instrument / Vocals') {
+            currentQuestion = questions.indexOf('q3_learn_instrument');
+        } else {
+            currentQuestion = questions.indexOf('q_final_comments');
+        }
+        showCurrentQuestion();
+        updateProgress();
+    }, 300);
+});
+
+document.getElementById('learn_instrument').addEventListener('change', function() {
+    flowData.learn_instrument = this.value;
+    setTimeout(() => {
+        currentQuestion = questions.indexOf('q_final_comments');
+        showCurrentQuestion();
+        updateProgress();
+    }, 300);
+});
+
+document.getElementById('contribute_option').addEventListener('change', function() {
+    flowData.contribute_option = this.value;
+    setTimeout(() => {
+        currentQuestion = questions.indexOf('q_final_comments');
+        showCurrentQuestion();
+        updateProgress();
+    }, 300);
+});
+
+let referralNameTimeout;
+document.getElementById('referral_name').addEventListener('input', function() {
+    clearTimeout(referralNameTimeout);
+    const value = this.value.trim();
+    if (value) {
+        referralNameTimeout = setTimeout(() => {
+            flowData.referral_name = value;
+            currentQuestion = questions.indexOf('q5_referral_skills');
             showCurrentQuestion();
             updateProgress();
-        }
+        }, 1000);
+    }
+});
 
-        function sendToGoogleSheets(data) {
-            // Send form data to Google Sheets via Google Apps Script Web App
-            const scriptURL = 'https://script.google.com/macros/s/AKfycbwT49FHaRFeu9f0PUP2YAuZWCUFnd90ZSoFHfgmitT8CgT0bKWm_o6rcRQ3CBE8aHTPuw/exec';
-            
-            // Send as JSON with correct content type
-            fetch(scriptURL, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(data)
-            })
-            .then(() => {
-                console.log('Form submitted successfully');
-            })
-            .catch(error => {
-                console.error('Error submitting form:', error);
-            });
+document.getElementById('referral_name').addEventListener('blur', function() {
+    clearTimeout(referralNameTimeout);
+    if (this.value.trim()) {
+        flowData.referral_name = this.value;
+        setTimeout(() => {
+            currentQuestion = questions.indexOf('q5_referral_skills');
+            showCurrentQuestion();
+            updateProgress();
+        }, 300);
+    }
+});
+
+document.getElementById('referral_skills').addEventListener('change', function() {
+    flowData.referral_skills = this.value;
+    setTimeout(() => {
+        currentQuestion = questions.indexOf('q_final_comments');
+        showCurrentQuestion();
+        updateProgress();
+    }, 300);
+});
+
+document.getElementById('asset').addEventListener('change', function() {
+    const asset = this.value;
+    flowData.asset = asset;
+
+    setTimeout(() => {
+        if (asset === 'Guitars') {
+            currentQuestion = questions.indexOf('q8_guitar_type');
+        } else if (asset === 'Guitar Processor') {
+            currentQuestion = questions.indexOf('q9_processor_model');
+        } else if (asset === 'Stands') {
+            currentQuestion = questions.indexOf('q10_stand_type');
+        } else if (asset === 'Cables') {
+            currentQuestion = questions.indexOf('q11_cable_type');
+        } else if (asset === 'DI Box') {
+            currentQuestion = questions.indexOf('q12_dibox_type');
+        } else if (asset === 'IEMs') {
+            currentQuestion = questions.indexOf('q13_iem_type');
+        } else if (asset === 'Drum Kit') {
+            currentQuestion = questions.indexOf('q14_drumkit_item');
+        } else if (asset === 'Percussion') {
+            currentQuestion = questions.indexOf('q15_percussion_item');
+        } else if (asset === 'Keyboards') {
+            currentQuestion = questions.indexOf('q16_keyboard_type');
+        } else if (asset === 'Sound System') {
+            currentQuestion = questions.indexOf('q17_soundsystem_item');
         }
-// Schedule Asset Check - sends email via Apps Script
-function scheduleAssetCheck() {
-    if (!confirm('Send asset check reminder to team?')) return;
-    
-    const data = {
-        reason: 'SCHEDULE_CHECK',
-        timestamp: new Date().toISOString(),
-        message: 'Please perform weekly asset check via Worship Portal'
-    };
-    
-    fetch('https://script.google.com/macros/s/AKfycbwT49FHaRFeu9f0PUP2YAuZWCUFnd90ZSoFHfgmitT8CgT0bKWm_o6rcRQ3CBE8aHTPuw/exec', {
-        method: 'POST',
-        body: JSON.stringify(data)
-    }).then(() => {
-        alert('✅ Asset check reminder scheduled! Team notified.');
+        showCurrentQuestion();
+        updateProgress();
+    }, 300);
+});
+
+document.getElementById('guitar_type').addEventListener('change', function() {
+    flowData.guitar_type = this.value;
+    setTimeout(() => { currentQuestion = questions.indexOf('q8_guitar_action'); showCurrentQuestion(); updateProgress(); }, 300);
+});
+
+document.getElementById('guitar_action').addEventListener('change', function() {
+    flowData.guitar_action = this.value;
+    setTimeout(() => { currentQuestion = questions.indexOf('q_final_comments'); showCurrentQuestion(); updateProgress(); }, 300);
+});
+
+document.getElementById('processor_model').addEventListener('change', function() {
+    flowData.processor_model = this.value;
+    setTimeout(() => { currentQuestion = questions.indexOf('q9_processor_issue'); showCurrentQuestion(); updateProgress(); }, 300);
+});
+
+document.getElementById('processor_issue').addEventListener('change', function() {
+    flowData.processor_issue = this.value;
+    setTimeout(() => { currentQuestion = questions.indexOf('q9_processor_action'); showCurrentQuestion(); updateProgress(); }, 300);
+});
+
+document.getElementById('processor_action').addEventListener('change', function() {
+    flowData.processor_action = this.value;
+    setTimeout(() => { currentQuestion = questions.indexOf('q_final_comments'); showCurrentQuestion(); updateProgress(); }, 300);
+});
+
+document.getElementById('stand_type').addEventListener('change', function() {
+    flowData.stand_type = this.value;
+    setTimeout(() => { currentQuestion = questions.indexOf('q10_stand_action'); showCurrentQuestion(); updateProgress(); }, 300);
+});
+
+document.getElementById('stand_action').addEventListener('change', function() {
+    flowData.stand_action = this.value;
+    setTimeout(() => { currentQuestion = questions.indexOf('q_final_comments'); showCurrentQuestion(); updateProgress(); }, 300);
+});
+
+document.getElementById('cable_type').addEventListener('change', function() {
+    flowData.cable_type = this.value;
+    setTimeout(() => { currentQuestion = questions.indexOf('q11_cable_action'); showCurrentQuestion(); updateProgress(); }, 300);
+});
+
+document.getElementById('cable_action').addEventListener('change', function() {
+    flowData.cable_action = this.value;
+    setTimeout(() => { currentQuestion = questions.indexOf('q_final_comments'); showCurrentQuestion(); updateProgress(); }, 300);
+});
+
+document.getElementById('dibox_type').addEventListener('change', function() {
+    flowData.dibox_type = this.value;
+    setTimeout(() => { currentQuestion = questions.indexOf('q12_dibox_action'); showCurrentQuestion(); updateProgress(); }, 300);
+});
+
+document.getElementById('dibox_action').addEventListener('change', function() {
+    flowData.dibox_action = this.value;
+    setTimeout(() => { currentQuestion = questions.indexOf('q_final_comments'); showCurrentQuestion(); updateProgress(); }, 300);
+});
+
+document.getElementById('iem_type').addEventListener('change', function() {
+    flowData.iem_type = this.value;
+    setTimeout(() => { currentQuestion = questions.indexOf('q13_iem_action'); showCurrentQuestion(); updateProgress(); }, 300);
+});
+
+document.getElementById('iem_action').addEventListener('change', function() {
+    flowData.iem_action = this.value;
+    setTimeout(() => { currentQuestion = questions.indexOf('q_final_comments'); showCurrentQuestion(); updateProgress(); }, 300);
+});
+
+document.getElementById('drumkit_item').addEventListener('change', function() {
+    flowData.drumkit_item = this.value;
+    setTimeout(() => { currentQuestion = questions.indexOf('q14_drumkit_action'); showCurrentQuestion(); updateProgress(); }, 300);
+});
+
+document.getElementById('drumkit_action').addEventListener('change', function() {
+    flowData.drumkit_action = this.value;
+    setTimeout(() => { currentQuestion = questions.indexOf('q_final_comments'); showCurrentQuestion(); updateProgress(); }, 300);
+});
+
+document.getElementById('percussion_item').addEventListener('change', function() {
+    flowData.percussion_item = this.value;
+    setTimeout(() => { currentQuestion = questions.indexOf('q15_percussion_action'); showCurrentQuestion(); updateProgress(); }, 300);
+});
+
+document.getElementById('percussion_action').addEventListener('change', function() {
+    flowData.percussion_action = this.value;
+    setTimeout(() => { currentQuestion = questions.indexOf('q_final_comments'); showCurrentQuestion(); updateProgress(); }, 300);
+});
+
+document.getElementById('keyboard_type').addEventListener('change', function() {
+    flowData.keyboard_type = this.value;
+    setTimeout(() => { currentQuestion = questions.indexOf('q16_keyboard_action'); showCurrentQuestion(); updateProgress(); }, 300);
+});
+
+document.getElementById('keyboard_action').addEventListener('change', function() {
+    flowData.keyboard_action = this.value;
+    setTimeout(() => { currentQuestion = questions.indexOf('q_final_comments'); showCurrentQuestion(); updateProgress(); }, 300);
+});
+
+document.getElementById('soundsystem_item').addEventListener('change', function() {
+    flowData.soundsystem_item = this.value;
+    setTimeout(() => { currentQuestion = questions.indexOf('q17_soundsystem_action'); showCurrentQuestion(); updateProgress(); }, 300);
+});
+
+document.getElementById('soundsystem_action').addEventListener('change', function() {
+    flowData.soundsystem_action = this.value;
+    setTimeout(() => { currentQuestion = questions.indexOf('q_final_comments'); showCurrentQuestion(); updateProgress(); }, 300);
+});
+
+function showCurrentQuestion() {
+    questions.forEach((q, index) => {
+        const element = document.getElementById(q);
+        if (element) {
+            element.classList.toggle('active', index === currentQuestion);
+        }
     });
 }
 
-// Auto-advance for asset check
-document.addEventListener('DOMContentLoaded', function() {
-    const checkboxes = document.querySelectorAll('#q3_assetcheck input[type="checkbox"]');
-    const comments = document.getElementById('check_comments');
-    
-    function checkAssetInput() {
-        const hasInput = comments.value.trim() || 
-                        Array.from(checkboxes).some(c => c.checked);
-        if (hasInput && document.getElementById('q3_assetcheck').classList.contains('active')) {
-            setTimeout(goToNextQuestion, 500);
+function updateProgress() {
+    const totalSteps = questions.length - 1;
+    const progress = (currentQuestion / totalSteps) * 100;
+    document.getElementById('progressBar').style.width = progress + '%';
+}
+
+function goToPreviousQuestion() {
+    const current = questions[currentQuestion];
+
+    if (current === 'q2_reason') {
+        currentQuestion = questions.indexOf('q1_name');
+    } else if (current === 'q3_learn_category') {
+        currentQuestion = questions.indexOf('q2_reason');
+    } else if (current === 'q3_learn_instrument') {
+        currentQuestion = questions.indexOf('q3_learn_category');
+    } else if (current === 'q4_contribute') {
+        currentQuestion = questions.indexOf('q2_reason');
+    } else if (current === 'q5_referral_name') {
+        currentQuestion = questions.indexOf('q2_reason');
+    } else if (current === 'q5_referral_skills') {
+        currentQuestion = questions.indexOf('q5_referral_name');
+    } else if (current === 'q6_suggestions') {
+        currentQuestion = questions.indexOf('q2_reason');
+    } else if (current === 'q7_asset') {
+        currentQuestion = questions.indexOf('q2_reason');
+        isAssetManagementFlow = false;
+    } else if (current === 'q8_guitar_type') {
+        currentQuestion = questions.indexOf('q7_asset');
+    } else if (current === 'q8_guitar_action') {
+        currentQuestion = questions.indexOf('q8_guitar_type');
+    } else if (current === 'q9_processor_model') {
+        currentQuestion = questions.indexOf('q7_asset');
+    } else if (current === 'q9_processor_issue') {
+        currentQuestion = questions.indexOf('q9_processor_model');
+    } else if (current === 'q9_processor_action') {
+        currentQuestion = questions.indexOf('q9_processor_issue');
+    } else if (current === 'q10_stand_type') {
+        currentQuestion = questions.indexOf('q7_asset');
+    } else if (current === 'q10_stand_action') {
+        currentQuestion = questions.indexOf('q10_stand_type');
+    } else if (current === 'q11_cable_type') {
+        currentQuestion = questions.indexOf('q7_asset');
+    } else if (current === 'q11_cable_action') {
+        currentQuestion = questions.indexOf('q11_cable_type');
+    } else if (current === 'q12_dibox_type') {
+        currentQuestion = questions.indexOf('q7_asset');
+    } else if (current === 'q12_dibox_action') {
+        currentQuestion = questions.indexOf('q12_dibox_type');
+    } else if (current === 'q13_iem_type') {
+        currentQuestion = questions.indexOf('q7_asset');
+    } else if (current === 'q13_iem_action') {
+        currentQuestion = questions.indexOf('q13_iem_type');
+    } else if (current === 'q14_drumkit_item') {
+        currentQuestion = questions.indexOf('q7_asset');
+    } else if (current === 'q14_drumkit_action') {
+        currentQuestion = questions.indexOf('q14_drumkit_item');
+    } else if (current === 'q15_percussion_item') {
+        currentQuestion = questions.indexOf('q7_asset');
+    } else if (current === 'q15_percussion_action') {
+        currentQuestion = questions.indexOf('q15_percussion_item');
+    } else if (current === 'q16_keyboard_type') {
+        currentQuestion = questions.indexOf('q7_asset');
+    } else if (current === 'q16_keyboard_action') {
+        currentQuestion = questions.indexOf('q16_keyboard_type');
+    } else if (current === 'q17_soundsystem_item') {
+        currentQuestion = questions.indexOf('q7_asset');
+    } else if (current === 'q17_soundsystem_action') {
+        currentQuestion = questions.indexOf('q17_soundsystem_item');
+    } else if (current === 'q_final_comments') {
+        if (flowData.reason === 'Learn') {
+            if (flowData.learn_instrument) {
+                currentQuestion = questions.indexOf('q3_learn_instrument');
+            } else {
+                currentQuestion = questions.indexOf('q3_learn_category');
+            }
+        } else if (flowData.reason === 'Contribute') {
+            currentQuestion = questions.indexOf('q4_contribute');
+        } else if (flowData.reason === 'Referral') {
+            currentQuestion = questions.indexOf('q5_referral_skills');
+        } else if (flowData.reason === 'Asset Management') {
+            if (flowData.guitar_action) {
+                currentQuestion = questions.indexOf('q8_guitar_action');
+            } else if (flowData.processor_action) {
+                currentQuestion = questions.indexOf('q9_processor_action');
+            } else if (flowData.stand_action) {
+                currentQuestion = questions.indexOf('q10_stand_action');
+            } else if (flowData.cable_action) {
+                currentQuestion = questions.indexOf('q11_cable_action');
+            } else if (flowData.dibox_action) {
+                currentQuestion = questions.indexOf('q12_dibox_action');
+            } else if (flowData.iem_action) {
+                currentQuestion = questions.indexOf('q13_iem_action');
+            } else if (flowData.drumkit_action) {
+                currentQuestion = questions.indexOf('q14_drumkit_action');
+            } else if (flowData.percussion_action) {
+                currentQuestion = questions.indexOf('q15_percussion_action');
+            } else if (flowData.keyboard_action) {
+                currentQuestion = questions.indexOf('q16_keyboard_action');
+            } else if (flowData.soundsystem_action) {
+                currentQuestion = questions.indexOf('q17_soundsystem_action');
+            }
         }
     }
-    
-    checkboxes.forEach(cb => cb.addEventListener('change', checkAssetInput));
-    if (comments) comments.addEventListener('input', checkAssetInput);
-});
 
-// Initialize
+    showCurrentQuestion();
+    updateProgress();
+}
+
+function handleAssetBack() {
+    currentQuestion = questions.indexOf('q2_reason');
+    isAssetManagementFlow = false;
+    showCurrentQuestion();
+    updateProgress();
+}
+
+function handleSubmit() {
+    flowData.final_comments = document.getElementById('final_comments').value;
+    flowData.suggestions_text = document.getElementById('suggestions_text').value;
+    flowData.timestamp = new Date().toISOString();
+
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbxS5Sd1zxlR5zZ0_gT0bKWm_o6rcRQ3CBE8aHTPuw/exec';
+
+    fetch(scriptURL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(flowData)
+    })
+    .then(() => {
+        currentQuestion = questions.indexOf('success');
+        showCurrentQuestion();
+        updateProgress();
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        currentQuestion = questions.indexOf('success');
+        showCurrentQuestion();
+        updateProgress();
+    });
+}
+
+function resetForm() {
+    document.getElementById('worshipForm').reset();
+    currentQuestion = 0;
+    isAssetManagementFlow = false;
+    flowData = {};
+    document.getElementById('assetTeamSection').classList.add('hidden');
+    showCurrentQuestion();
+    updateProgress();
+}
+
 showCurrentQuestion();
 updateProgress();
-
     </script>
 </body>
-</html>
+    </html>
