@@ -1118,10 +1118,8 @@ function scheduleAssetCheck() {
 // Auto-advance for asset check
 document.addEventListener('DOMContentLoaded', function() {
     const checkboxes = document.querySelectorAll('#q3_assetcheck input[type="checkbox"]');
-    // Asset check auto-advance
-document.addEventListener('DOMContentLoaded', function() {
-    const checkboxes = document.querySelectorAll('#q3_assetcheck input[type="checkbox"]');
     const comments = document.getElementById('check_comments');
+    
     function checkAssetInput() {
         const hasInput = comments.value.trim() || 
                         Array.from(checkboxes).some(c => c.checked);
@@ -1134,11 +1132,10 @@ document.addEventListener('DOMContentLoaded', function() {
     if (comments) comments.addEventListener('input', checkAssetInput);
 });
 
+// Initialize
+showCurrentQuestion();
+updateProgress();
 
-
-        // Initialize
-        showCurrentQuestion();
-        updateProgress();
     </script>
 </body>
 </html>
