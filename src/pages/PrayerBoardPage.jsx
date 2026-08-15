@@ -77,7 +77,7 @@ export default function PrayerBoardPage() {
   }
 
   async function handlePray(req) {
-    const already = (req.prayingMembers || '').includes(member.id)
+    const already = (req.prayingMembers || '').split(',').filter(Boolean).includes(member.id)
     if (already) return
     const now = Date.now()
     if (lastTapRef.current[req.id] && now - lastTapRef.current[req.id] < 1000) return

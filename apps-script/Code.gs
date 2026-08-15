@@ -33,7 +33,7 @@ function ok(data) {
 }
 
 function err(msg) {
-  return ContentService.createTextOutput(JSON.stringify({ success: false, error: msg }))
+  return ContentService.createTextOutput(JSON.stringify({ success: false, error: msg || 'Something went wrong. Please try again.' }))
     .setMimeType(ContentService.MimeType.JSON);
 }
 
@@ -91,6 +91,7 @@ function route(action, p) {
     case 'getMaintenanceLogs': return getMaintenanceLogs(p);
     case 'addMaintenanceLog':  return addMaintenanceLog(p);
     case 'updateMaintenanceLog': return updateMaintenanceLog(p);
+    case 'deleteMaintenanceLog': return deleteMaintenanceLog(p);
 
     // Announcements
     case 'getAnnouncements':   return getAnnouncements(p);
@@ -872,6 +873,17 @@ function updateMaintenanceLog(p) {
   return ok({ message: 'Updated' });
 }
 
+function deleteMaintenanceLog(p) {
+  var auth = requireAuth(p, 'ADMIN');
+  if (!auth.ok) return err(auth.error);
+  var sheet = getSheet('MaintenanceLog');
+  var row = findRowById(sheet, p.id);
+  if (row < 0) return err('Log not found');
+  deleteRow(sheet, row);
+  touchCache('MaintenanceLog');
+  return ok({ message: 'Deleted' });
+}
+
 // ================================================================
 // MAINTENANCE REMINDERS
 // TRIGGER: Time-driven, Hour timer, every 5 hours
@@ -1087,9 +1099,41 @@ function createAnnouncement(p) {
   p.rsvpNo = '';
   appendRow(getSheet('Announcements'), p);
   notifyAllMembers('announcement', '📢 ' + p.title, p.body.substring(0, 100), '/notices?id=' + p.id);
-  try { sendAnnouncementEmailBlast(p.title, p.body); } catch(ex) { Logger.log('Email blast error: ' + ex.message); }
+  try { queueAnnouncementEmailBlast(p.id, p.title, p.body); } catch(ex) { Logger.log('Email blast queue error: ' + ex.message); }
   touchCache('Announcements');
   return ok({ id: p.id });
+}
+
+// Defers the (slow, synchronous GmailApp) email blast off the request path so
+// createAnnouncement returns immediately instead of leaving the client waiting
+// on 48+ sequential sends. Payload goes through Script Properties since a
+// time-based trigger's callback takes no arguments.
+function queueAnnouncementEmailBlast(id, title, body) {
+  PropertiesService.getScriptProperties().setProperty(
+    'pendingAnnouncementEmail_' + id,
+    JSON.stringify({ title: title, body: body })
+  );
+  ScriptApp.newTrigger('runPendingAnnouncementEmails').timeBased().after(1000).create();
+}
+
+function runPendingAnnouncementEmails() {
+  var props = PropertiesService.getScriptProperties();
+  var all = props.getProperties();
+  Object.keys(all).forEach(function(key) {
+    if (key.indexOf('pendingAnnouncementEmail_') !== 0) return;
+    try {
+      var job = JSON.parse(all[key]);
+      sendAnnouncementEmailBlast(job.title, job.body);
+    } catch (ex) {
+      Logger.log('Deferred email blast error for ' + key + ': ' + ex.message);
+    } finally {
+      props.deleteProperty(key);
+    }
+  });
+  // Self-cleanup: remove the one-time trigger(s) that fired this run.
+  ScriptApp.getProjectTriggers().forEach(function(t) {
+    if (t.getHandlerFunction() === 'runPendingAnnouncementEmails') ScriptApp.deleteTrigger(t);
+  });
 }
 
 function sendAnnouncementEmailBlast(title, body) {

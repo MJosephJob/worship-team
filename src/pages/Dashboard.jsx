@@ -270,10 +270,10 @@ export default function Dashboard() {
             <div className="mt-6">
               <p className="text-[10px] text-cream-muted font-body uppercase tracking-widest mb-3">Admin overview</p>
               <div className="grid grid-cols-2 gap-3">
-                <StatCard icon={Package} label="Total Assets" value={d.totalAssets || 0} />
-                <StatCard icon={AlertTriangle} label="Need Attention" value={d.assetsNeedingAttention || 0} color="text-warning" />
-                <StatCard icon={Users} label="Total Members" value={d.totalMembers || 0} />
-                <StatCard icon={TrendingUp} label="Onboarded %" value={`${d.onboardedPct || 0}%`} color="text-success" />
+                <StatCard icon={Package} label="Total Assets" value={d.totalAssets || 0} onClick={() => navigate('/assets')} />
+                <StatCard icon={AlertTriangle} label="Need Attention" value={d.assetsNeedingAttention || 0} color="text-warning" onClick={() => navigate(`/assets?condition=${encodeURIComponent('Needs Repair')}`)} />
+                <StatCard icon={Users} label="Total Members" value={d.totalMembers || 0} onClick={() => navigate('/settings')} />
+                <StatCard icon={TrendingUp} label="Onboarded %" value={`${d.onboardedPct || 0}%`} color="text-success" onClick={() => navigate('/settings')} />
               </div>
             </div>
 

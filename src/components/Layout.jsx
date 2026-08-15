@@ -147,7 +147,10 @@ export default function Layout() {
       <div className="flex-1 flex flex-col min-w-0">
 
         {/* Top bar */}
-        <header className="bg-surface border-b border-border px-4 py-3 flex items-center justify-between sticky top-0 z-30">
+        <header
+          className="bg-surface border-b border-border px-4 py-3 flex items-center justify-between sticky top-0 z-30"
+          style={{ paddingTop: 'calc(0.75rem + var(--safe-top))' }}
+        >
           <div className="flex items-center gap-2">
             <img
               src={teamLogo || '/icons/CBC_logo.png'}
@@ -161,7 +164,7 @@ export default function Layout() {
           <div className="flex items-center gap-2 bg-surface-raised border border-border rounded-full px-2.5 py-1">
             <button
               onClick={toggleTheme}
-              className="text-cream-muted hover:text-gold transition-colors"
+              className="text-cream-muted hover:text-gold transition-colors tooltip-edge-right"
               data-tooltip={theme === 'dark' ? 'Light mode' : 'Dark mode'}
             >
               {theme === 'dark' ? (
@@ -185,7 +188,7 @@ export default function Layout() {
             <div className="w-px h-4 bg-border" />
             <NavLink
               to="/profile"
-              className="w-7 h-7 rounded-full bg-gold/20 border border-gold/40 flex items-center justify-center overflow-hidden hover:border-gold transition-colors"
+              className="w-7 h-7 rounded-full bg-gold/20 border border-gold/40 flex items-center justify-center overflow-hidden hover:border-gold transition-colors tooltip-edge-right"
               data-tooltip="My Profile"
             >
               {(member?.photoUrl || member?.photoBase64)

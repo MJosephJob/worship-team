@@ -1,4 +1,4 @@
-import { createContext, useContext, useReducer, useCallback } from 'react'
+import { createContext, useContext, useReducer, useCallback, useRef } from 'react'
 
 const AppContext = createContext(null)
 
@@ -30,8 +30,17 @@ function appReducer(state, action) {
 export function AppProvider({ children }) {
   const [state, dispatch] = useReducer(appReducer, initialState)
 
+  const lastToastRef = useRef({ key: null, at: 0 })
+
   const toast = useCallback((message, type = 'success', duration = 3500, opts = {}) => {
-    const id = Date.now()
+    // Dedup identical back-to-back toasts (e.g. several independent mount-time
+    // API calls all failing with the same error) so they don't stack.
+    const key = `${type}:${message}`
+    const now = Date.now()
+    if (lastToastRef.current.key === key && now - lastToastRef.current.at < 4000) return
+    lastToastRef.current = { key, at: now }
+
+    const id = now + Math.random()
     dispatch({ type: 'ADD_TOAST', payload: { id, message, type, subtitle: opts.subtitle, onClick: opts.onClick } })
     setTimeout(() => dispatch({ type: 'REMOVE_TOAST', id }), duration)
   }, [])

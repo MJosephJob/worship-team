@@ -8,6 +8,7 @@ import { requestFCMPermission, saveFCMToken } from '../utils/notifications'
 import { User, Camera, Bell, Moon, Sun, Key, Smartphone, LogOut } from 'lucide-react'
 import Modal from '../components/Modal'
 import IOSInstallModal from '../components/IOSInstallModal'
+import AndroidInstallModal from '../components/AndroidInstallModal'
 import GoldSpinner from '../components/GoldSpinner'
 import PageHeader from '../components/PageHeader'
 import InstrumentPicker from '../components/InstrumentPicker'
@@ -25,6 +26,7 @@ export default function ProfilePage() {
     bio: member?.bio || '',
   })
   const [showIOSModal, setShowIOSModal] = useState(false)
+  const [showAndroidModal, setShowAndroidModal] = useState(false)
   const [saving, setSaving] = useState(false)
   const [photoUploading, setPhotoUploading] = useState(false)
   const [photoPreview, setPhotoPreview] = useState(null)
@@ -52,7 +54,7 @@ export default function ProfilePage() {
     e.preventDefault()
     setSaving(true)
     try {
-      await apiFetch('updateMember', { id: member.id, ...form })
+      await apiFetch('updateMember', { id: member.id, requestingMemberId: member.id, ...form })
       updateMemberLocal(form)
       toast('Profile updated', 'success')
     } catch (err) { toast(err.message, 'error') }
@@ -67,7 +69,7 @@ export default function ProfilePage() {
       const compressed = await compressImage(file)
       const base64 = compressed.includes(',') ? compressed.split(',')[1] : compressed
       setPhotoPreview(compressed)
-      await apiFetch('updateMember', { id: member.id, photoBase64: base64 })
+      await apiFetch('updateMember', { id: member.id, requestingMemberId: member.id, photoBase64: base64 })
       updateMemberLocal({ photoBase64: compressed })
       setPhotoPreview(null)
       toast('Photo updated', 'success')
@@ -108,7 +110,7 @@ export default function ProfilePage() {
     if (installPrompt) {
       installPrompt.prompt()
     } else {
-      toast('Use your browser menu → Add to Home Screen', 'info')
+      setShowAndroidModal(true)
     }
   }
 
@@ -231,6 +233,7 @@ export default function ProfilePage() {
       </div>
 
       <IOSInstallModal isOpen={showIOSModal} onClose={() => setShowIOSModal(false)} />
+      <AndroidInstallModal isOpen={showAndroidModal} onClose={() => setShowAndroidModal(false)} />
 
       {/* Change Password Modal */}
       <Modal open={showPassModal} onClose={() => setShowPassModal(false)} title="Change Password" maxWidth="max-w-sm">

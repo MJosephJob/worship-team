@@ -20,6 +20,7 @@ const CACHE_TTLS = {
   getAllSettings:          10 * 60 * 1000,
 }
 const DEFAULT_TTL = 5 * 60 * 1000
+const REQUEST_TIMEOUT_MS = 25 * 1000
 
 // Read-only actions that are safe to cache in sessionStorage
 const CACHEABLE = new Set([
@@ -56,6 +57,12 @@ export function invalidateCache(action) {
   } catch {}
 }
 
+export function clearAllApiCache() {
+  try {
+    Object.keys(sessionStorage).filter(k => k.startsWith('apicache:')).forEach(k => sessionStorage.removeItem(k))
+  } catch {}
+}
+
 export async function apiFetch(action, payload = {}, { skipCache = false } = {}) {
   const url = localStorage.getItem('appsScriptUrl') || APPS_SCRIPT_URL
   if (!url) throw new Error('Apps Script URL not configured. Please set it in Super Admin settings.')
@@ -75,6 +82,8 @@ export async function apiFetch(action, payload = {}, { skipCache = false } = {})
   const fullPayload = { ...payload, sessionToken: token }
 
   const hasPhoto = typeof fullPayload.photoBase64 === 'string' && fullPayload.photoBase64.length > 0
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS)
   let response
   try {
     if (hasPhoto) {
@@ -82,6 +91,7 @@ export async function apiFetch(action, payload = {}, { skipCache = false } = {})
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action, ...fullPayload }),
+        signal: controller.signal,
       })
     } else {
       const params = new URLSearchParams({ action, ...flattenPayload(fullPayload) })
@@ -89,9 +99,13 @@ export async function apiFetch(action, payload = {}, { skipCache = false } = {})
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: params.toString(),
+        signal: controller.signal,
       })
     }
   } catch (error) {
+    if (error.name === 'AbortError') {
+      throw new Error('The request took too long. Please check your connection and try again.')
+    }
     if (
       error instanceof TypeError &&
       error.message.toLowerCase().includes('fetch') &&
@@ -102,6 +116,8 @@ export async function apiFetch(action, payload = {}, { skipCache = false } = {})
       )
     }
     throw error
+  } finally {
+    clearTimeout(timeoutId)
   }
 
   if (!response.ok) {

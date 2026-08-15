@@ -3,11 +3,12 @@ import { useLocation } from 'react-router-dom'
 import { apiFetch, invalidateCache } from '../utils/api'
 import { useAuth } from '../contexts/AuthContext'
 import { useApp } from '../contexts/AppContext'
-import { Package, Plus, Search, AlertTriangle, X, Filter, Camera, Wrench } from 'lucide-react'
+import { Package, Plus, Search, AlertTriangle, X, Filter, Camera, Wrench, Trash2 } from 'lucide-react'
 import Modal from '../components/Modal'
 import EmptyState from '../components/EmptyState'
 import GoldSpinner from '../components/GoldSpinner'
 import PageHeader from '../components/PageHeader'
+import ConfirmDialog from '../components/ConfirmDialog'
 import { compressImage } from '../utils/imageCompress'
 
 const CONDITION_OPTIONS = ['Excellent','Good','Fair','Needs Repair']
@@ -55,6 +56,8 @@ export default function AssetsPage() {
   const [showMaint, setShowMaint] = useState(null)
   const [activeAssetSerial, setActiveAssetSerial] = useState(null)
   const [completingLog, setCompletingLog] = useState(null)
+  const [deletingLog, setDeletingLog] = useState(null)
+  const [confirmDeleteLog, setConfirmDeleteLog] = useState(null)
   const [form, setForm] = useState({ name:'',category:'',subcategory:'',description:'',serialNumber:'',condition:'Good',assignedTo:'',purchaseDate:'',estimatedValue:'',status:'Active',notes:'',photoBase64:'',photoLoading:false })
   const [maintForm, setMaintForm] = useState({ date:'',maintenanceType:'',description:'',doneBy:'',cost:'',nextDueDate:'',photoBase64:'' })
   const [maintDoneByOther, setMaintDoneByOther] = useState('')
@@ -86,6 +89,13 @@ export default function AssetsPage() {
       }
     }
   }, [assets, location.search])
+
+  // Pre-apply a condition filter when navigating via ?condition=<value> (e.g. from the Dashboard's "Need Attention" card)
+  useEffect(() => {
+    const params = new URLSearchParams(location.search)
+    const condition = params.get('condition')
+    if (condition) setFilters(f => ({ ...f, condition }))
+  }, [location.search])
 
   async function load() {
     setLoading(true)
@@ -239,6 +249,21 @@ export default function AssetsPage() {
       }
     } catch (err) { toast(err.message, 'error') }
     finally { setCompletingLog(null) }
+  }
+
+  async function handleDeleteLog(log) {
+    setDeletingLog(log.id)
+    try {
+      await apiFetch('deleteMaintenanceLog', { id: log.id })
+      toast('Maintenance log deleted', 'success')
+      if (showDetail?.serialNumber) {
+        const sn = showDetail.serialNumber
+        const logs = await apiFetch('getMaintenanceLogs', { serialNumber: sn })
+        const sorted = Array.isArray(logs) ? logs.sort((a, b) => new Date(b.raisedAt || b.date) - new Date(a.raisedAt || a.date)) : []
+        setDetailLogsBySerial(prev => ({ ...prev, [sn]: sorted }))
+      }
+    } catch (err) { toast(err.message, 'error') }
+    finally { setDeletingLog(null) }
   }
 
   function dueStatus(asset) {
@@ -601,19 +626,31 @@ export default function AssetsPage() {
                               {log.nextDueDate && <span>· Due: {formatDate(log.nextDueDate)}</span>}
                             </div>
                           </div>
-                          {isComplete ? (
-                            <span className="text-[10px] bg-success/10 text-success px-1.5 py-0.5 rounded font-body flex-shrink-0">Done</span>
-                          ) : isAdmin ? (
-                            <button
-                              onClick={() => handleMarkComplete(log)}
-                              disabled={completingLog === log.id}
-                              className="text-[10px] bg-gold/10 text-gold border border-gold/30 px-2 py-0.5 rounded font-body flex-shrink-0 hover:bg-gold/20"
-                            >
-                              {completingLog === log.id ? '...' : 'Mark Done'}
-                            </button>
-                          ) : (
-                            <span className="text-[10px] bg-warning/10 text-warning px-1.5 py-0.5 rounded font-body flex-shrink-0">Open</span>
-                          )}
+                          <div className="flex items-center gap-1.5 flex-shrink-0">
+                            {isComplete ? (
+                              <span className="text-[10px] bg-success/10 text-success px-1.5 py-0.5 rounded font-body">Done</span>
+                            ) : isAdmin ? (
+                              <button
+                                onClick={() => handleMarkComplete(log)}
+                                disabled={completingLog === log.id}
+                                className="text-[10px] bg-gold/10 text-gold border border-gold/30 px-2 py-0.5 rounded font-body hover:bg-gold/20"
+                              >
+                                {completingLog === log.id ? '...' : 'Mark Done'}
+                              </button>
+                            ) : (
+                              <span className="text-[10px] bg-warning/10 text-warning px-1.5 py-0.5 rounded font-body">Open</span>
+                            )}
+                            {isAdmin && (
+                              <button
+                                onClick={() => setConfirmDeleteLog(log)}
+                                disabled={deletingLog === log.id}
+                                title="Delete log"
+                                className="w-5 h-5 rounded flex items-center justify-center text-danger hover:bg-danger/10"
+                              >
+                                <Trash2 size={11} />
+                              </button>
+                            )}
+                          </div>
                         </div>
                         {(log.photoUrl || log.photoBase64) && (
                           <div>
@@ -630,6 +667,16 @@ export default function AssetsPage() {
         </Modal>
         )
       })()}
+
+      <ConfirmDialog
+        open={!!confirmDeleteLog}
+        onClose={() => setConfirmDeleteLog(null)}
+        onConfirm={() => handleDeleteLog(confirmDeleteLog)}
+        title="Delete Maintenance Log"
+        message={`Delete this maintenance log entry${confirmDeleteLog?.maintenanceType ? ` (${confirmDeleteLog.maintenanceType})` : ''}? This can't be undone.`}
+        confirmLabel="Delete"
+        danger
+      />
     </div>
   )
 }

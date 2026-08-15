@@ -18,6 +18,7 @@
   --font-heading: "Playfair Display", serif;
   --font-body: "Lato", sans-serif;
   --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-top: env(safe-area-inset-top, 0px);
 }
 
 * {
@@ -31,6 +32,7 @@ html {
   color: var(--color-cream);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  direction: ltr;
 }
 
 body {
@@ -175,92 +177,97 @@ button:active, .btn:active, a:active {
 .status-believing { background: rgba(76,140,232,0.15); color: #4c8ce8; }
 .status-answered  { background: rgba(76,175,130,0.15); color: #4caf82; }
 
-/* Card base */
-.worship-card {
-  background: var(--color-surface);
-  border: 0.5px solid var(--color-border);
-  border-radius: 1rem;
-  transition: border-color 0.2s ease;
-}
+/* Component base classes — layered so Tailwind utility classes used
+   alongside them (e.g. `worship-input pl-9`) always win regardless of
+   source order in this file, instead of losing to these on tie specificity. */
+@layer components {
+  /* Card base */
+  .worship-card {
+    background: var(--color-surface);
+    border: 0.5px solid var(--color-border);
+    border-radius: 1rem;
+    transition: border-color 0.2s ease;
+  }
 
-/* Input base */
-.worship-input {
-  background: var(--color-surface-raised);
-  border: 0.5px solid var(--color-border);
-  border-radius: 0.75rem;
-  color: var(--color-cream);
-  padding: 0.75rem 1rem;
-  font-family: var(--font-body);
-  font-size: 0.9rem;
-  width: 100%;
-  transition: border-color 0.2s;
-  outline: none;
-}
-.worship-input:focus {
-  border-color: var(--color-gold);
-}
-.worship-input::placeholder {
-  color: var(--color-cream-muted);
-}
+  /* Input base */
+  .worship-input {
+    background: var(--color-surface-raised);
+    border: 0.5px solid var(--color-border);
+    border-radius: 0.75rem;
+    color: var(--color-cream);
+    padding: 0.75rem 1rem;
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    width: 100%;
+    transition: border-color 0.2s;
+    outline: none;
+  }
+  .worship-input:focus {
+    border-color: var(--color-gold);
+  }
+  .worship-input::placeholder {
+    color: var(--color-cream-muted);
+  }
 
-/* Gold button */
-.btn-gold {
-  background: var(--color-gold);
-  color: var(--color-midnight);
-  font-family: var(--font-body);
-  font-weight: 600;
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.75rem;
-  border: none;
-  cursor: pointer;
-  transition: background 0.2s, transform 0.1s;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-.btn-gold:hover {
-  background: var(--color-gold-light);
-}
-.btn-gold:active {
-  transform: scale(0.97);
-}
+  /* Gold button */
+  .btn-gold {
+    background: var(--color-gold);
+    color: var(--color-midnight);
+    font-family: var(--font-body);
+    font-weight: 600;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.75rem;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .btn-gold:hover {
+    background: var(--color-gold-light);
+  }
+  .btn-gold:active {
+    transform: scale(0.97);
+  }
 
-/* Outline button */
-.btn-outline {
-  background: transparent;
-  color: var(--color-cream);
-  border: 0.5px solid var(--color-border);
-  font-family: var(--font-body);
-  font-weight: 700;
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.75rem;
-  cursor: pointer;
-  transition: background 0.2s, transform 0.1s;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-.btn-outline:hover {
-  background: rgba(255,255,255,0.05);
-}
-.btn-outline:active {
-  transform: scale(0.97);
-}
+  /* Outline button */
+  .btn-outline {
+    background: transparent;
+    color: var(--color-cream);
+    border: 0.5px solid var(--color-border);
+    font-family: var(--font-body);
+    font-weight: 700;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.75rem;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .btn-outline:hover {
+    background: rgba(255,255,255,0.05);
+  }
+  .btn-outline:active {
+    transform: scale(0.97);
+  }
 
-/* Danger button */
-.btn-danger {
-  background: rgba(232,92,92,0.15);
-  color: var(--color-danger);
-  border: 1px solid rgba(232,92,92,0.3);
-  font-family: var(--font-body);
-  font-weight: 700;
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.5rem;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-.btn-danger:hover {
-  background: rgba(232,92,92,0.25);
+  /* Danger button */
+  .btn-danger {
+    background: rgba(232,92,92,0.15);
+    color: var(--color-danger);
+    border: 1px solid rgba(232,92,92,0.3);
+    font-family: var(--font-body);
+    font-weight: 700;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .btn-danger:hover {
+    background: rgba(232,92,92,0.25);
+  }
 }
 
 /* Bottom nav safe area */
@@ -334,6 +341,15 @@ html {
 [data-tooltip]:hover::after,
 [data-tooltip]:focus::after {
   opacity: 1;
+}
+
+/* Tooltip variant for triggers near the right edge of the viewport
+   (e.g. the header pill) — centering would push the tooltip off-screen
+   and clip it, so grow leftward from the trigger's right edge instead. */
+[data-tooltip].tooltip-edge-right::after {
+  left: auto;
+  right: 0;
+  transform: none;
 }
 
 /* Clickable feedback */

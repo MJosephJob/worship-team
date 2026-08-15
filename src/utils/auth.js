@@ -1,5 +1,5 @@
 import { sha256 } from './sha256'
-import { apiFetch } from './api'
+import { apiFetch, clearAllApiCache } from './api'
 
 const SESSION_KEY = 'cbc_session'
 const SESSION_EXPIRY_KEY = 'cbc_session_expiry'
@@ -46,6 +46,7 @@ export function clearSession() {
   localStorage.removeItem(SESSION_EXPIRY_KEY)
   localStorage.removeItem('cbc_member')
   localStorage.removeItem(STAY_SIGNED_IN_KEY)
+  clearAllApiCache()
 }
 
 export function getSessionToken() {

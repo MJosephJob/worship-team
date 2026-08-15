@@ -23,6 +23,9 @@ export default function LoginPage() {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [resetDone, setResetDone] = useState(false)
   const [error, setError] = useState('')
+  const [forgotError, setForgotError] = useState('')
+
+  const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -48,9 +51,14 @@ export default function LoginPage() {
 
   async function handleForgot(e) {
     e.preventDefault()
+    setForgotError('')
+    if (!EMAIL_RE.test(forgotEmail.trim())) {
+      setForgotError('Enter a valid email address')
+      return
+    }
     setLoading(true)
     try {
-      await requestPasswordReset(forgotEmail)
+      await requestPasswordReset(forgotEmail.trim())
       setForgotSent(true)
     } catch (err) {
       toast(err.message || 'Could not send reset link', 'error')
@@ -102,6 +110,7 @@ export default function LoginPage() {
     setConfirmPassword('')
     setResetDone(false)
     setError('')
+    setForgotError('')
     window.history.replaceState({}, '', '/login')
   }
 
@@ -256,10 +265,15 @@ export default function LoginPage() {
             <h2 className="font-body text-cream text-xl font-semibold text-center mb-2">Reset Password</h2>
             <form onSubmit={handleForgot} className="flex flex-col gap-4">
               <p className="font-body text-cream-muted text-sm">Enter your email and we'll send you a reset link.</p>
+              {forgotError && (
+                <div className="bg-danger/10 border border-danger/30 rounded-lg px-4 py-3">
+                  <p className="font-body text-danger text-sm">{forgotError}</p>
+                </div>
+              )}
               <input
                 type="email"
                 value={forgotEmail}
-                onChange={e => setForgotEmail(e.target.value)}
+                onChange={e => { setForgotEmail(e.target.value); setForgotError('') }}
                 className="worship-input"
                 placeholder="you@example.com"
                 required
@@ -267,7 +281,7 @@ export default function LoginPage() {
               <button type="submit" disabled={loading} className="btn-gold w-full justify-center">
                 {loading ? <span className="spinner !w-5 !h-5" /> : 'Send Reset Link'}
               </button>
-              <button type="button" onClick={() => setForgotMode(false)} className="font-body text-cream-muted text-sm text-center">
+              <button type="button" onClick={() => { setForgotMode(false); setForgotError('') }} className="font-body text-cream-muted text-sm text-center">
                 Back to Login
               </button>
             </form>
