@@ -296,10 +296,19 @@ function deleteRow(sheet, rowNum) {
   sheet.deleteRow(rowNum);
 }
 
-function getAdminMembers() {
-  return sheetToObjects(getSheet('Members')).filter(function(m) {
+// `department`, when given, narrows the result to admins assigned to that
+// department (e.g. 'ASSETS'). If nobody is assigned to it yet, falls back to
+// the full admin list so notifications never silently go to nobody during
+// the transition period before departments are actually assigned.
+function getAdminMembers(department) {
+  var all = sheetToObjects(getSheet('Members')).filter(function(m) {
     return (m.role === 'ADMIN' || m.role === 'SUPER_ADMIN') && String(m.isActive).toLowerCase() !== 'false';
   });
+  if (!department) return all;
+  var scoped = all.filter(function(m) {
+    return (m.adminDepartments || '').split(',').filter(Boolean).indexOf(department) !== -1;
+  });
+  return scoped.length > 0 ? scoped : all;
 }
 
 // ================================================================
@@ -516,6 +525,15 @@ function updateMember(p) {
   if (auth.role === 'MEMBER' && p.id !== p.requestingMemberId) {
     return err('Cannot update another member');
   }
+  // role and adminDepartments are sensitive fields — only a Super Admin may
+  // change them, regardless of whose row is being updated. Without this an
+  // ADMIN (not just SUPER_ADMIN) could grant themselves or anyone else a
+  // higher role or admin department via a direct API call, since the check
+  // above only restricts a plain MEMBER to their own id.
+  if (auth.role !== 'SUPER_ADMIN') {
+    delete p.role;
+    delete p.adminDepartments;
+  }
   addMissingColumns();
   if (p.photoBase64) {
     try {
@@ -675,6 +693,12 @@ function addMissingColumns() {
       Logger.log('addMissingColumns: added photoUrl column to ' + sheetName);
     }
   });
+  var membersSheet = getSheet('Members');
+  var membersHeaders = membersSheet.getRange(1, 1, 1, membersSheet.getLastColumn()).getValues()[0];
+  if (membersHeaders.indexOf('adminDepartments') === -1) {
+    membersSheet.getRange(1, membersSheet.getLastColumn() + 1).setValue('adminDepartments');
+    Logger.log('addMissingColumns: added adminDepartments column to Members');
+  }
 }
 
 function columnExists(sheetName, columnName) {
@@ -758,8 +782,8 @@ function addMaintenanceLog(p) {
     });
   }
 
-  // In-app notification + email to all admins and super admins
-  var admins = getAdminMembers();
+  // In-app notification + email to the Assets admin(s)
+  var admins = getAdminMembers('ASSETS');
   admins.forEach(function(admin) {
     addNotification(admin.id, 'maintenance',
       'New Maintenance Log',
@@ -857,8 +881,8 @@ function updateMaintenanceLog(p) {
       }
     }
 
-    // In-app + email to all admins and super admins
-    var compAdmins = getAdminMembers();
+    // In-app + email to the Assets admin(s)
+    var compAdmins = getAdminMembers('ASSETS');
     compAdmins.forEach(function(admin) {
       addNotification(admin.id, 'maintenance',
         'Maintenance Completed',
@@ -895,27 +919,36 @@ function sendMaintenanceReminders() {
   });
   if (logs.length === 0) return;
   var assets = sheetToObjects(getSheet('Assets'));
-  var admins = getAdminMembers();
-  logs.forEach(function(l) {
+  var admins = getAdminMembers('ASSETS');
+
+  // One consolidated digest per admin per run, not one notification/email per
+  // (item, admin) pair — with N open items and M admins this used to fire
+  // N*M separate pings every 5 hours for the same stale-item list.
+  var items = logs.map(function(l) {
     var asset = assets.find(function(a) { return String(a.serialNumber).trim() === String(l.serialNumber).trim(); });
-    var assetName = asset ? asset.name : (l.serialNumber || 'Unknown Asset');
-    var description = l.description || l.maintenanceType || '—';
-    var dateRaised = l.date || '—';
-    var body = assetName + ' — ' + description + ' — Raised: ' + dateRaised + ' — Still OPEN';
-    admins.forEach(function(admin) {
-      addNotification(admin.id, 'maintenance', 'Open Maintenance Reminder', body, '/assets');
-      if (admin.email) {
-        sendMaintenanceRaisedEmail(admin.email, admin.name, {
-          assetName: assetName,
-          serialNumber: l.serialNumber || (asset ? asset.serialNumber : '') || '—',
-          description: description,
-          raisedBy: l.doneBy || '—',
-          dateRaised: dateRaised,
-          maintenanceType: l.maintenanceType || '—',
-          nextDueDate: l.nextDueDate || '—'
-        });
-      }
-    });
+    return {
+      assetName: asset ? asset.name : (l.serialNumber || 'Unknown Asset'),
+      description: l.description || l.maintenanceType || '—',
+      raisedBy: l.doneBy || '—',
+      dateRaised: l.date || '—',
+    };
+  });
+
+  var names = items.map(function(i) { return i.assetName; });
+  var summary = names.length <= 5
+    ? names.join(', ')
+    : names.slice(0, 5).join(', ') + ', +' + (names.length - 5) + ' more';
+  var notifBody = items.length + ' item' + (items.length === 1 ? '' : 's') + ' still open: ' + summary;
+
+  var emailRows = items.map(function(i) {
+    return { asset: i.assetName, description: i.description, raisedBy: i.raisedBy, dateRaised: i.dateRaised, status: 'Open' };
+  });
+
+  admins.forEach(function(admin) {
+    addNotification(admin.id, 'maintenance', 'Open Maintenance Reminder', notifBody, '/assets');
+    if (admin.email) {
+      sendMaintenanceLogEmail(admin.email, admin.name, emailRows, false);
+    }
   });
 }
 
@@ -1324,6 +1357,7 @@ function markAnswered(p) {
     id: genId(), originalRequestId: p.id, title: req.title, detail: req.detail,
     postedBy: req.postedBy, answeredAt: now, testimony: p.testimony
   });
+  notifyAllMembers('prayer', '🕊️ Prayer Answered!', req.title + ' — praise God!', '/prayer');
   touchCache('PrayerRequests');
   touchCache('AnsweredPrayers');
   return ok({ message: 'Marked as answered' });
@@ -1999,8 +2033,8 @@ function updateRosterSlot(p) {
       }
     }
 
-    // In-app + email to all admins
-    var admins = getAdminMembers();
+    // In-app + email to the Prayer admin(s)
+    var admins = getAdminMembers('PRAYER');
     admins.forEach(function(admin) {
       addNotification(admin.id, 'roster',
         '📅 Roster Updated',
@@ -2203,7 +2237,7 @@ function createSuggestion(p) {
   p.adminResponse = '';
   p.respondedAt = '';
   appendRow(getSheet('AuditionSuggestions'), p);
-  var admins = sheetToObjects(getSheet('Members')).filter(function(m) { return m.role === 'ADMIN' || m.role === 'SUPER_ADMIN'; });
+  var admins = getAdminMembers('AUDITIONS');
   admins.forEach(function(admin) {
     addNotification(admin.id, 'audition', '🎵 New Talent Suggestion', p.suggestedName + ' — ' + p.skill + ' for ' + p.ministry, '/auditions');
     try { GmailApp.sendEmail(admin.email, buildEmailSubject('audition', { name: admin.name, suggestedName: p.suggestedName, skill: p.skill, ministry: p.ministry }), '', { htmlBody: buildEmailHtml('audition', { name: admin.name, suggestedName: p.suggestedName, skill: p.skill, ministry: p.ministry }), name: 'CBC Thane Worship' }); } catch(ex) { Logger.log('Email error: ' + ex.message); }

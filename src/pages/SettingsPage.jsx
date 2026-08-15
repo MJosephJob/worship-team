@@ -14,6 +14,8 @@ import InstrumentPicker from '../components/InstrumentPicker'
 import RichTextEditor from '../components/RichTextEditor'
 
 const ROLES = ['MEMBER','ADMIN','SUPER_ADMIN']
+const DEPARTMENTS = ['WORSHIP','ASSETS','SOUND','PRAYER','EVENTS','AUDITIONS']
+const DEPARTMENT_LABELS = { WORSHIP: 'Worship', ASSETS: 'Assets', SOUND: 'Sound', PRAYER: 'Prayer', EVENTS: 'Events', AUDITIONS: 'Auditions' }
 
 export default function SettingsPage() {
   const { member, refreshMember } = useAuth()
@@ -114,6 +116,15 @@ export default function SettingsPage() {
     try {
       await apiFetch('updateMember', { id: m.id, role: newRole })
       toast('Role updated', 'success')
+      loadMembers()
+    } catch (err) { toast(err.message, 'error') }
+  }
+
+  async function handleDepartmentsChange(m, dept) {
+    const current = (m.adminDepartments || '').split(',').filter(Boolean)
+    const next = current.includes(dept) ? current.filter(d => d !== dept) : [...current, dept]
+    try {
+      await apiFetch('updateMember', { id: m.id, requestingMemberId: member.id, adminDepartments: next.join(',') })
       loadMembers()
     } catch (err) { toast(err.message, 'error') }
   }
@@ -371,6 +382,25 @@ export default function SettingsPage() {
                         </span>
                         <span className="text-[10px] px-1.5 py-0.5 rounded bg-info/10 text-info font-body">{m.role}</span>
                       </div>
+                      {isSuperAdmin && (m.role === 'ADMIN' || m.role === 'SUPER_ADMIN') && (
+                        <div className="flex items-center gap-1 mt-1.5 flex-wrap">
+                          {DEPARTMENTS.map(dept => {
+                            const active = (m.adminDepartments || '').split(',').filter(Boolean).includes(dept)
+                            return (
+                              <button
+                                key={dept}
+                                type="button"
+                                onClick={() => handleDepartmentsChange(m, dept)}
+                                className={`text-[10px] px-2 py-0.5 rounded-full font-body border transition-colors ${
+                                  active ? 'bg-gold/15 text-gold border-gold/40' : 'bg-surface-raised text-cream-muted border-border hover:border-gold/30'
+                                }`}
+                              >
+                                {DEPARTMENT_LABELS[dept]}
+                              </button>
+                            )
+                          })}
+                        </div>
+                      )}
                     </div>
                     {isSuperAdmin && m.role !== 'SUPER_ADMIN' && (
                       <select
