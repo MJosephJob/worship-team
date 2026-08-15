@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>/ — graphify tree viewer</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f9f9f9;
+      color: #333;
+    }
+    h1 {
+      margin: 20px 0 0 24px;
+      font-size: 2.2rem;
+      font-weight: bold;
+      color: #1e3a56;
+    }
+    .controls {
+      margin: 20px 0 15px 24px;
+    }
+    button {
+      margin-right: 10px;
+      padding: 8px 18px;
+      background: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: background 0.2s ease-in-out;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    button:active {
+      background: #004085;
+    }
+    #tree-container {
+      width: calc(100vw - 48px); /* Adjust for body margin/padding */
+      height: 85vh;
+      overflow: auto;
+      border-radius: 8px;
+      background: #fff;
+      margin-left: 24px;
+      margin-right: 24px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      border: 1px solid #ddd;
+    }
+    svg {
+      background: #fff;
+      border-radius: 8px;
+      display: block; /* Important for D3 */
+    }
+    .node circle {
+      stroke-width: 2.5px;
+    }
+    .node text { /* Base style for the <text> container */
+      font: 13px 'Segoe UI', sans-serif;
+      paint-order: stroke fill; /* Ensures text is readable over lines */
+      stroke: #fff; /* White halo */
+      stroke-width: 3px; /* Halo thickness */
+      stroke-linejoin: round;
+      stroke-opacity: 0.85; /* Halo opacity */
+    }
+    .link {
+      fill: none;
+      stroke-opacity: 0.7;
+      stroke-width: 2px;
+    }
+  </style>
+</head>
+<body>
+  <h1>/ — Knowledge Graph</h1>
+  <div class="controls">
+    <button onclick="expandAll()">Expand All</button>
+    <button onclick="collapseAll()">Collapse All</button>
+    <button onclick="resetView()">Reset View</button>
+  </div>
+  <div id="tree-container">
+    <svg id="tree-svg" width="6000" height="8000"></svg>
+  </div>
+
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script>
+    const initialJsonData = {"name":"/","total_count":303,"children":[{"name":"build-tools","total_count":3,"children":[{"name":"obfuscate.js","total_count":3,"children":[{"name":"DIST_DIR","total_count":1,"children":[]},{"name":"obfuscateDir()","total_count":1,"children":[]},{"name":"OBFUSCATOR_OPTIONS","total_count":1,"children":[]}]}]},{"name":"CBC Worship portal - ARCHITECTURE.md","total_count":23,"children":[{"name":"1a. Frontend Pages (`src/pages/`)","total_count":1,"children":[]},{"name":"1b. Frontend Components (`src/components/`)","total_count":1,"children":[]},{"name":"1c. Google Sheets (Database Tables)","total_count":1,"children":[]},{"name":"1d. External Services","total_count":1,"children":[]},{"name":"Backend \u2014 Code.gs Helper Functions","total_count":1,"children":[]},{"name":"CBC Worship portal - ARCHITECTURE.md","total_count":1,"children":[]},{"name":"CBC Worship Portal \u2014 Architecture & Function Reference","total_count":1,"children":[]},{"name":"Flow 1 \u2014 Member logs in","total_count":1,"children":[]},{"name":"Flow 2 \u2014 Member views Birthday Wall","total_count":1,"children":[]},{"name":"Flow 3 \u2014 Admin adds new asset (no photo)","total_count":1,"children":[]},{"name":"Flow 3b \u2014 Admin adds new asset (WITH photo)","total_count":1,"children":[]},{"name":"Flow 4 \u2014 Member adds maintenance log (no photo)","total_count":1,"children":[]},{"name":"Flow 4b \u2014 Member adds maintenance log (WITH photo)","total_count":1,"children":[]},{"name":"Flow 5 \u2014 Member RSVPs \"No\" to a notice","total_count":1,"children":[]},{"name":"Flow 6 \u2014 Admin marks a member absent at an event","total_count":1,"children":[]},{"name":"Flow 7 \u2014 Birthday PDF email trigger fires (scheduled)","total_count":1,"children":[]},{"name":"Flow 8 \u2014 Member uploads a profile photo","total_count":1,"children":[]},{"name":"Frontend \u2014 Shared Utilities","total_count":1,"children":[]},{"name":"PART 1 \u2014 High-Level Architecture","total_count":1,"children":[]},{"name":"PART 2 \u2014 Request Flows","total_count":1,"children":[]},{"name":"PART 3 \u2014 All GAS Actions Reference","total_count":1,"children":[]},{"name":"PART 4 \u2014 All Time-Driven Triggers","total_count":1,"children":[]},{"name":"PART 5 \u2014 Shared Utilities","total_count":1,"children":[]}]},{"name":"claude-code-task-brief.md","total_count":6,"children":[{"name":"CBC Worship Portal \u2014 Task Brief for Claude Code","total_count":1,"children":[]},{"name":"claude-code-task-brief.md","total_count":1,"children":[]},{"name":"General constraints","total_count":1,"children":[]},{"name":"Project context","total_count":1,"children":[]},{"name":"Task 1 \u2014 Department-scoped admin roles (foundation)","total_count":1,"children":[]},{"name":"Task 2 \u2014 Notification routing overhaul (depends on Task 1)","total_count":1,"children":[]}]},{"name":"dev-dist","total_count":1,"children":[{"name":"registerSW.js","total_count":1,"children":[]}]},{"name":"docs","total_count":71,"children":[{"name":"APPS_SCRIPT_SETUP.md","total_count":8,"children":[{"name":"Apps Script Setup Guide","total_count":1,"children":[]},{"name":"APPS_SCRIPT_SETUP.md","total_count":1,"children":[]},{"name":"Important Notes","total_count":1,"children":[]},{"name":"Step 1 \u2014 Create the Google Spreadsheet","total_count":1,"children":[]},{"name":"Step 2 \u2014 Open the Apps Script Editor","total_count":1,"children":[]},{"name":"Step 3 \u2014 Paste the Code","total_count":1,"children":[]},{"name":"Step 4 \u2014 Deploy as a Web App","total_count":1,"children":[]},{"name":"Step 5 \u2014 Paste the URL into the App","total_count":1,"children":[]}]},{"name":"CHANGE_LIST.md","total_count":9,"children":[{"name":"Admin Tools","total_count":1,"children":[]},{"name":"Branding & Design","total_count":1,"children":[]},{"name":"Change List \u2014 20 Things You Can Ask Claude to Change","total_count":1,"children":[]},{"name":"CHANGE_LIST.md","total_count":1,"children":[]},{"name":"Data & Reporting","total_count":1,"children":[]},{"name":"Features","total_count":1,"children":[]},{"name":"How to ask Claude","total_count":1,"children":[]},{"name":"Member Experience","total_count":1,"children":[]},{"name":"Notifications & Reminders","total_count":1,"children":[]}]},{"name":"CLOUDFLARE_DEPLOY.md","total_count":11,"children":[{"name":"Cloudflare Pages Deployment Guide","total_count":1,"children":[]},{"name":"CLOUDFLARE_DEPLOY.md","total_count":1,"children":[]},{"name":"Free Tier Limits","total_count":1,"children":[]},{"name":"Prerequisites","total_count":1,"children":[]},{"name":"Redeployment","total_count":1,"children":[]},{"name":"Sharing with the Team","total_count":1,"children":[]},{"name":"Step 1 \u2014 Build the App","total_count":1,"children":[]},{"name":"Step 2 \u2014 Create a Cloudflare Account","total_count":1,"children":[]},{"name":"Step 3 \u2014 Deploy via Drag and Drop","total_count":1,"children":[]},{"name":"Step 4 \u2014 Configure for React Router (Important!)","total_count":1,"children":[]},{"name":"Step 5 \u2014 Custom Domain (Optional)","total_count":1,"children":[]}]},{"name":"EMAILJS_SETUP.md","total_count":14,"children":[{"name":"EmailJS Setup Guide","total_count":1,"children":[]},{"name":"EMAILJS_SETUP.md","total_count":1,"children":[]},{"name":"Step 1 \u2014 Create an EmailJS Account","total_count":1,"children":[]},{"name":"Step 2 \u2014 Add an Email Service","total_count":1,"children":[]},{"name":"Step 3 \u2014 Create Email Templates","total_count":1,"children":[]},{"name":"Step 4 \u2014 Get Your Keys","total_count":1,"children":[]},{"name":"Step 5 \u2014 Paste into the App","total_count":1,"children":[]},{"name":"Template 1 \u2014 New Announcement","total_count":1,"children":[]},{"name":"Template 2 \u2014 Password Reset","total_count":1,"children":[]},{"name":"Template 3 \u2014 Maintenance Overdue","total_count":1,"children":[]},{"name":"Template 4 \u2014 Onboarding Complete","total_count":1,"children":[]},{"name":"Template 5 \u2014 Monthly V&M Reminder","total_count":1,"children":[]},{"name":"Template 6 \u2014 Audition Suggestion","total_count":1,"children":[]},{"name":"Testing","total_count":1,"children":[]}]},{"name":"FIREBASE_SETUP.md","total_count":9,"children":[{"name":"Firebase Push Notifications Setup Guide","total_count":1,"children":[]},{"name":"FIREBASE_SETUP.md","total_count":1,"children":[]},{"name":"Free Tier Limits","total_count":1,"children":[]},{"name":"Step 1 \u2014 Create a Firebase Project","total_count":1,"children":[]},{"name":"Step 2 \u2014 Register Your Web App","total_count":1,"children":[]},{"name":"Step 3 \u2014 Enable Cloud Messaging","total_count":1,"children":[]},{"name":"Step 4 \u2014 Get Your Server Key","total_count":1,"children":[]},{"name":"Step 5 \u2014 Paste Config into the App","total_count":1,"children":[]},{"name":"Step 6 \u2014 Allow Notifications","total_count":1,"children":[]}]},{"name":"MEMBER_ONBOARDING_GUIDE.md","total_count":12,"children":[{"name":"After onboarding","total_count":1,"children":[]},{"name":"How to add a new member","total_count":1,"children":[]},{"name":"How to track onboarding progress","total_count":1,"children":[]},{"name":"Member Onboarding Guide","total_count":1,"children":[]},{"name":"MEMBER_ONBOARDING_GUIDE.md","total_count":1,"children":[]},{"name":"Step 1 \u2014 Welcome screen","total_count":1,"children":[]},{"name":"Step 2 \u2014 Vision & Mission Reader","total_count":1,"children":[]},{"name":"Step 3 \u2014 Quiz","total_count":1,"children":[]},{"name":"Step 4 \u2014 Typed Confirmation","total_count":1,"children":[]},{"name":"Step 5 \u2014 Onboarding Checklist","total_count":1,"children":[]},{"name":"What if a member gets stuck or needs to reset?","total_count":1,"children":[]},{"name":"What the new member experiences on first login","total_count":1,"children":[]}]},{"name":"OBFUSCATION_GUIDE.md","total_count":8,"children":[{"name":"Does obfuscation break the app?","total_count":1,"children":[]},{"name":"How to run the obfuscated build","total_count":1,"children":[]},{"name":"JavaScript Obfuscation Guide","total_count":1,"children":[]},{"name":"Normal build vs secure build","total_count":1,"children":[]},{"name":"Obfuscation settings used","total_count":1,"children":[]},{"name":"OBFUSCATION_GUIDE.md","total_count":1,"children":[]},{"name":"What does it protect?","total_count":1,"children":[]},{"name":"What is obfuscation?","total_count":1,"children":[]}]}]},{"name":"package.json","total_count":40,"children":[{"name":"@types/react","total_count":1,"children":[]},{"name":"@types/react","total_count":1,"children":[]},{"name":"@types/react-dom","total_count":1,"children":[]},{"name":"@types/react-dom","total_count":1,"children":[]},{"name":"@vitejs/plugin-react","total_count":1,"children":[]},{"name":"@vitejs/plugin-react","total_count":1,"children":[]},{"name":"autoprefixer","total_count":1,"children":[]},{"name":"autoprefixer","total_count":1,"children":[]},{"name":"build","total_count":1,"children":[]},{"name":"build:secure","total_count":1,"children":[]},{"name":"dependencies","total_count":1,"children":[]},{"name":"deploy","total_count":1,"children":[]},{"name":"dev","total_count":1,"children":[]},{"name":"devDependencies","total_count":1,"children":[]},{"name":"firebase","total_count":1,"children":[]},{"name":"firebase","total_count":1,"children":[]},{"name":"javascript-obfuscator","total_count":1,"children":[]},{"name":"javascript-obfuscator","total_count":1,"children":[]},{"name":"lucide-react","total_count":1,"children":[]},{"name":"lucide-react","total_count":1,"children":[]},{"name":"name","total_count":1,"children":[]},{"name":"postcss","total_count":1,"children":[]},{"name":"postcss","total_count":1,"children":[]},{"name":"preview","total_count":1,"children":[]},{"name":"private","total_count":1,"children":[]},{"name":"react","total_count":1,"children":[]},{"name":"react","total_count":1,"children":[]},{"name":"react-dom","total_count":1,"children":[]},{"name":"react-dom","total_count":1,"children":[]},{"name":"react-router-dom","total_count":1,"children":[]},{"name":"react-router-dom","total_count":1,"children":[]},{"name":"scripts","total_count":1,"children":[]},{"name":"tailwindcss","total_count":1,"children":[]},{"name":"tailwindcss","total_count":1,"children":[]},{"name":"type","total_count":1,"children":[]},{"name":"version","total_count":1,"children":[]},{"name":"vite","total_count":1,"children":[]},{"name":"vite","total_count":1,"children":[]},{"name":"vite-plugin-pwa","total_count":1,"children":[]},{"name":"vite-plugin-pwa","total_count":1,"children":[]}]},{"name":"public","total_count":17,"children":[{"name":"firebase-messaging-sw.js","total_count":1,"children":[{"name":"messaging","total_count":1,"children":[]}]},{"name":"manifest.json","total_count":14,"children":[{"name":"background_color","total_count":1,"children":[]},{"name":"categories","total_count":1,"children":[]},{"name":"description","total_count":1,"children":[]},{"name":"display","total_count":1,"children":[]},{"name":"icons","total_count":1,"children":[]},{"name":"name","total_count":1,"children":[]},{"name":"orientation","total_count":1,"children":[]},{"name":"prefer_related_applications","total_count":1,"children":[]},{"name":"productivity","total_count":1,"children":[]},{"name":"scope","total_count":1,"children":[]},{"name":"short_name","total_count":1,"children":[]},{"name":"social","total_count":1,"children":[]},{"name":"start_url","total_count":1,"children":[]},{"name":"theme_color","total_count":1,"children":[]}]},{"name":"service-worker.js","total_count":2,"children":[{"name":"PRECACHE_ASSETS","total_count":1,"children":[]},{"name":"syncNotifications()","total_count":1,"children":[]}]}]},{"name":"src","total_count":139,"children":[{"name":"App.jsx","total_count":18,"children":[{"name":"App()","total_count":1,"children":[]},{"name":"AssetsPage","total_count":1,"children":[]},{"name":"AuditionsPage","total_count":1,"children":[]},{"name":"BirthdayPage","total_count":1,"children":[]},{"name":"Dashboard","total_count":1,"children":[]},{"name":"EventsPage","total_count":1,"children":[]},{"name":"NotFoundPage","total_count":1,"children":[]},{"name":"NoticeBoardPage","total_count":1,"children":[]},{"name":"NotificationsPage","total_count":1,"children":[]},{"name":"OnboardingFlow","total_count":1,"children":[]},{"name":"PrayerBoardPage","total_count":1,"children":[]},{"name":"ProfilePage","total_count":1,"children":[]},{"name":"RequireAuth()","total_count":1,"children":[]},{"name":"RequireOnboarded()","total_count":1,"children":[]},{"name":"RosterPage","total_count":1,"children":[]},{"name":"SettingsPage","total_count":1,"children":[]},{"name":"VMReaderPage","total_count":1,"children":[]},{"name":"YearEndPage","total_count":1,"children":[]}]},{"name":"components","total_count":25,"children":[{"name":"ConfirmDialog.jsx","total_count":1,"children":[{"name":"ConfirmDialog()","total_count":1,"children":[]}]},{"name":"EmptyState.jsx","total_count":1,"children":[{"name":"EmptyState()","total_count":1,"children":[]}]},{"name":"ErrorBoundary.jsx","total_count":5,"children":[{"name":".componentDidCatch()","total_count":1,"children":[]},{"name":".constructor()","total_count":1,"children":[]},{"name":".getDerivedStateFromError()","total_count":1,"children":[]},{"name":".render()","total_count":1,"children":[]},{"name":"ErrorBoundary","total_count":1,"children":[]}]},{"name":"GoldSpinner.jsx","total_count":1,"children":[{"name":"GoldSpinner()","total_count":1,"children":[]}]},{"name":"InstallBanner.jsx","total_count":1,"children":[{"name":"InstallBanner()","total_count":1,"children":[]}]},{"name":"InstrumentPicker.jsx","total_count":2,"children":[{"name":"InstrumentPicker()","total_count":1,"children":[]},{"name":"INSTRUMENTS","total_count":1,"children":[]}]},{"name":"IOSInstallModal.jsx","total_count":2,"children":[{"name":"IOSInstallModal()","total_count":1,"children":[]},{"name":"steps","total_count":1,"children":[]}]},{"name":"Layout.jsx","total_count":4,"children":[{"name":"BOTTOM_NAV","total_count":1,"children":[]},{"name":"FAB_ITEMS","total_count":1,"children":[]},{"name":"Layout()","total_count":1,"children":[]},{"name":"navItems","total_count":1,"children":[]}]},{"name":"LoadingScreen.jsx","total_count":1,"children":[{"name":"LoadingScreen()","total_count":1,"children":[]}]},{"name":"Modal.jsx","total_count":1,"children":[{"name":"Modal()","total_count":1,"children":[]}]},{"name":"PageHeader.jsx","total_count":1,"children":[{"name":"PageHeader()","total_count":1,"children":[]}]},{"name":"RichTextEditor.jsx","total_count":1,"children":[{"name":"RichTextEditor()","total_count":1,"children":[]}]},{"name":"StatCard.jsx","total_count":1,"children":[{"name":"StatCard()","total_count":1,"children":[]}]},{"name":"ToastContainer.jsx","total_count":3,"children":[{"name":"borders","total_count":1,"children":[]},{"name":"icons","total_count":1,"children":[]},{"name":"ToastContainer()","total_count":1,"children":[]}]}]},{"name":"contexts","total_count":14,"children":[{"name":"AppContext.jsx","total_count":5,"children":[{"name":"AppContext","total_count":1,"children":[]},{"name":"AppProvider()","total_count":1,"children":[]},{"name":"appReducer()","total_count":1,"children":[]},{"name":"initialState","total_count":1,"children":[]},{"name":"useApp()","total_count":1,"children":[]}]},{"name":"AuthContext.jsx","total_count":3,"children":[{"name":"AuthContext","total_count":1,"children":[]},{"name":"AuthProvider()","total_count":1,"children":[]},{"name":"useAuth()","total_count":1,"children":[]}]},{"name":"NotificationContext.jsx","total_count":3,"children":[{"name":"NotificationContext","total_count":1,"children":[]},{"name":"NotificationProvider()","total_count":1,"children":[]},{"name":"useNotifications()","total_count":1,"children":[]}]},{"name":"ThemeContext.jsx","total_count":3,"children":[{"name":"ThemeContext","total_count":1,"children":[]},{"name":"ThemeProvider()","total_count":1,"children":[]},{"name":"useTheme()","total_count":1,"children":[]}]}]},{"name":"pages","total_count":56,"children":[{"name":"AssetsPage.jsx","total_count":6,"children":[{"name":"AssetsPage()","total_count":1,"children":[]},{"name":"CONDITION_OPTIONS","total_count":1,"children":[]},{"name":"conditionColor","total_count":1,"children":[]},{"name":"formatDate()","total_count":1,"children":[]},{"name":"MAINTENANCE_TYPES","total_count":1,"children":[]},{"name":"STATUSES","total_count":1,"children":[]}]},{"name":"AttendancePage.jsx","total_count":5,"children":[{"name":"AttendancePage()","total_count":1,"children":[]},{"name":"EVENT_TYPES","total_count":1,"children":[]},{"name":"getCachedAttendance()","total_count":1,"children":[]},{"name":"getCachedMembers()","total_count":1,"children":[]},{"name":"STATUS_CONFIG","total_count":1,"children":[]}]},{"name":"AuditionsPage.jsx","total_count":4,"children":[{"name":"AuditionsPage()","total_count":1,"children":[]},{"name":"MINISTRIES","total_count":1,"children":[]},{"name":"statusColor","total_count":1,"children":[]},{"name":"STATUSES","total_count":1,"children":[]}]},{"name":"BirthdayPage.jsx","total_count":2,"children":[{"name":"BirthdayPage()","total_count":1,"children":[]},{"name":"getDaysUntilBirthday()","total_count":1,"children":[]}]},{"name":"Dashboard.jsx","total_count":6,"children":[{"name":"Dashboard()","total_count":1,"children":[]},{"name":"getCached()","total_count":1,"children":[]},{"name":"greeting()","total_count":1,"children":[]},{"name":"setCache()","total_count":1,"children":[]},{"name":"SkeletonCard()","total_count":1,"children":[]},{"name":"VMStatusBadge()","total_count":1,"children":[]}]},{"name":"EventsPage.jsx","total_count":3,"children":[{"name":"EVENT_TYPES","total_count":1,"children":[]},{"name":"EventsPage()","total_count":1,"children":[]},{"name":"STATUS_CONFIG","total_count":1,"children":[]}]},{"name":"LoginPage.jsx","total_count":1,"children":[{"name":"LoginPage()","total_count":1,"children":[]}]},{"name":"NotFoundPage.jsx","total_count":1,"children":[{"name":"NotFoundPage()","total_count":1,"children":[]}]},{"name":"NoticeBoardPage.jsx","total_count":7,"children":[{"name":"AnnouncementCard()","total_count":1,"children":[]},{"name":"CollapsibleNames()","total_count":1,"children":[]},{"name":"isRecentNotice()","total_count":1,"children":[]},{"name":"NoticeBoardPage()","total_count":1,"children":[]},{"name":"NoticeSkeletonCard()","total_count":1,"children":[]},{"name":"URGENCIES","total_count":1,"children":[]},{"name":"urgencyLabel","total_count":1,"children":[]}]},{"name":"NotificationsPage.jsx","total_count":2,"children":[{"name":"NotificationsPage()","total_count":1,"children":[]},{"name":"typeIcon","total_count":1,"children":[]}]},{"name":"OnboardingFlow.jsx","total_count":2,"children":[{"name":"OnboardingFlow()","total_count":1,"children":[]},{"name":"sanitize()","total_count":1,"children":[]}]},{"name":"PrayerBoardPage.jsx","total_count":3,"children":[{"name":"PrayerBoardPage()","total_count":1,"children":[]},{"name":"PrayerSkeletonCard()","total_count":1,"children":[]},{"name":"tabs","total_count":1,"children":[]}]},{"name":"ProfilePage.jsx","total_count":1,"children":[{"name":"ProfilePage()","total_count":1,"children":[]}]},{"name":"RosterPage.jsx","total_count":4,"children":[{"name":"getNextEightMondays()","total_count":1,"children":[]},{"name":"RosterPage()","total_count":1,"children":[]},{"name":"RosterSkeletonRow()","total_count":1,"children":[]},{"name":"ZoomSkeletonCard()","total_count":1,"children":[]}]},{"name":"SettingsPage.jsx","total_count":2,"children":[{"name":"ROLES","total_count":1,"children":[]},{"name":"SettingsPage()","total_count":1,"children":[]}]},{"name":"SetupWizard.jsx","total_count":2,"children":[{"name":"SetupWizard()","total_count":1,"children":[]},{"name":"STEPS","total_count":1,"children":[]}]},{"name":"VMReaderPage.jsx","total_count":4,"children":[{"name":"formatSignedAt()","total_count":1,"children":[]},{"name":"sanitize()","total_count":1,"children":[]},{"name":"VMReaderPage()","total_count":1,"children":[]},{"name":"VMSection()","total_count":1,"children":[]}]},{"name":"YearEndPage.jsx","total_count":1,"children":[{"name":"YearEndPage()","total_count":1,"children":[]}]}]},{"name":"utils","total_count":25,"children":[{"name":"api.js","total_count":10,"children":[{"name":"apiFetch()","total_count":1,"children":[]},{"name":"apiGet()","total_count":1,"children":[]},{"name":"CACHE_TTLS","total_count":1,"children":[]},{"name":"CACHEABLE","total_count":1,"children":[]},{"name":"cacheKey()","total_count":1,"children":[]},{"name":"flattenPayload()","total_count":1,"children":[]},{"name":"getCached()","total_count":1,"children":[]},{"name":"invalidateCache()","total_count":1,"children":[]},{"name":"setAppsScriptUrl()","total_count":1,"children":[]},{"name":"setCache()","total_count":1,"children":[]}]},{"name":"auth.js","total_count":6,"children":[{"name":"changePassword()","total_count":1,"children":[]},{"name":"clearSession()","total_count":1,"children":[]},{"name":"getSessionToken()","total_count":1,"children":[]},{"name":"login()","total_count":1,"children":[]},{"name":"requestPasswordReset()","total_count":1,"children":[]},{"name":"validateSession()","total_count":1,"children":[]}]},{"name":"badges.js","total_count":2,"children":[{"name":"BADGE_DEFINITIONS","total_count":1,"children":[]},{"name":"checkAndAwardBadges()","total_count":1,"children":[]}]},{"name":"imageCompress.js","total_count":1,"children":[{"name":"compressImage()","total_count":1,"children":[]}]},{"name":"notifications.js","total_count":5,"children":[{"name":"formatNotificationTime()","total_count":1,"children":[]},{"name":"parseNotifDate()","total_count":1,"children":[]},{"name":"requestFCMPermission()","total_count":1,"children":[]},{"name":"saveFCMToken()","total_count":1,"children":[]},{"name":"setupForegroundNotifications()","total_count":1,"children":[]}]},{"name":"sha256.js","total_count":1,"children":[{"name":"sha256()","total_count":1,"children":[]}]}]},{"name":"main.jsx","total_count":1,"children":[]}]},{"name":"vite.config.js","total_count":1,"children":[{"name":"buildStart()","total_count":1,"children":[]}]},{"name":"postcss.config.js","total_count":1,"children":[]},{"name":"tailwind.config.js","total_count":1,"children":[]}]};
+
+    function transformData(jsonData) {
+        // Helper function to recursively build the children structure
+        function processNode(node, parentL1StageName) {
+            let displayName = node.name;
+            // Append total_count if it exists and is not already in the name
+            if (node.total_count !== undefined) {
+                if (!/\(Total Count: \d+\)$/.test(displayName)) {
+                    displayName += ` (Total Count: ${node.total_count})`;
+                }
+            }
+
+            const newNode = { name: displayName };
+
+            if (parentL1StageName === "Root") {
+                 newNode.originalStageName = node.name;
+            } else {
+                newNode.originalStageName = parentL1StageName;
+            }
+
+            if (node.children && node.children.length > 0) {
+                const stageNameToPass = (parentL1StageName === "Root") ? node.name : parentL1StageName;
+                newNode.children = node.children.map(child => processNode(child, stageNameToPass));
+            }
+
+            return newNode;
+        }
+
+        let rootDisplayName = jsonData.name;
+        if (jsonData.total_count !== undefined && !/\(Total Count: \d+\)$/.test(rootDisplayName)) {
+            rootDisplayName += ` (Total Count: ${jsonData.total_count})`;
+        }
+
+        return {
+            name: rootDisplayName,
+            originalStageName: "Root",
+            children: (jsonData.children || []).map(child => processNode(child, "Root"))
+        };
+    }
+
+    const treeData = transformData(initialJsonData);
+
+    // Auto-populated phaseColors: every depth-1 child of the root gets
+    // a stable colour from a bigger palette so all top-level dirs are
+    // distinguishable.
+    const PALETTE = [
+      ["#3498DB","#2980B9","#AED6F1"], ["#2ECC71","#27AE60","#A9DFBF"],
+      ["#E74C3C","#C0392B","#F5B7B1"], ["#9B59B6","#8E44AD","#D7BDE2"],
+      ["#F39C12","#D68910","#FAD7A0"], ["#1ABC9C","#117864","#A2D9CE"],
+      ["#34495E","#1B2631","#ABB2B9"], ["#E67E22","#BA4A00","#F5CBA7"],
+      ["#16A085","#0E6655","#A2D9CE"], ["#D35400","#A04000","#EDBB99"],
+      ["#7F8C8D","#566573","#D5DBDB"], ["#C0392B","#7B241C","#F5B7B1"],
+      ["#2E86C1","#1B4F72","#A9CCE3"], ["#28B463","#196F3D","#A9DFBF"],
+      ["#AF7AC5","#6C3483","#D2B4DE"],
+    ];
+    const phaseColors = { "Root": { fill: "#4A4A4A", stroke: "#333333", collapsedFill: "#6C757D" },
+                          "Default": { fill: "#BDC3C7", stroke: "#95A5A6", collapsedFill: "#ECF0F1" } };
+    (initialJsonData.children || []).forEach((c, i) => {
+      const pal = PALETTE[i % PALETTE.length];
+      phaseColors[c.name] = { fill: pal[0], stroke: pal[1], collapsedFill: pal[2] };
+    });
+
+    const levelSpecificPalettes = {
+      0: { fill: "#4A4A4A", stroke: "#333333", collapsedFill: "#6C757D" },
+      2: { fill: "#6ab04c", stroke: "#508a38", collapsedFill: "#a3d391" },
+      3: { fill: "#f0932b", stroke: "#d0730f", collapsedFill: "#f6c07e" },
+      4: { fill: "#be2edd", stroke: "#a01cb3", collapsedFill: "#e08bf2" },
+      5: { fill: "#00a8ff", stroke: "#007ac1", collapsedFill: "#74d2ff" },
+      6: { fill: "#e55039", stroke: "#c23620", collapsedFill: "#f09a8d" },
+      default: { fill: "#747d8c", stroke: "#57606f", collapsedFill: "#a4b0be" }
+    };
+
+    const svgElement = d3.select("#tree-svg");
+    const initialSvgWidth = +svgElement.attr("width");
+    const initialSvgHeight = +svgElement.attr("height");
+    const margin = { top: 40, right: 120, bottom: 80, left: 450 };
+    let width = initialSvgWidth - margin.left - margin.right;
+    let height = initialSvgHeight - margin.top - margin.bottom;
+    const duration = 500;
+    let nodeCounter = 0;
+    const g = svgElement.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+    const treemap = d3.tree().nodeSize([40, 0]);
+    let rootNode = d3.hierarchy(treeData, d => d.children);
+    rootNode.x0 = 0;
+    rootNode.y0 = 0;
+
+    if (rootNode.children) {
+      rootNode.children.forEach(d_child => {
+        if (d_child.children) { collapseBranch(d_child); }
+      });
+    }
+    updateTree(rootNode);
+
+    function collapseBranch(d) { if (d.children) { d._children = d.children; d._children.forEach(collapseBranch); d.children = null; } }
+    function expandBranch(d) { if (d._children) { d.children = d._children; d._children = null; } if (d.children) { d.children.forEach(expandBranch); } }
+    window.expandAll = () => { expandBranch(rootNode); updateTree(rootNode); };
+    window.collapseAll = () => { if (rootNode.children) { rootNode.children.forEach(collapseBranch); } updateTree(rootNode); };
+    window.resetView = () => { if (rootNode.children) { rootNode.children.forEach(d_child => { if (d_child.children || d_child._children) { collapseBranch(d_child); } }); } if (rootNode._children && !rootNode.children) { rootNode.children = rootNode._children; rootNode._children = null; } updateTree(rootNode); };
+
+    function updateTree(source) {
+      const treeLayoutData = treemap(rootNode);
+      let nodes = treeLayoutData.descendants();
+      let links = treeLayoutData.descendants().slice(1);
+
+      let minX = 0;
+      let maxX = 0;
+      if (nodes.length > 0) {
+        minX = d3.min(nodes, d => d.x);
+        maxX = d3.max(nodes, d => d.x);
+      }
+
+      let neededHeight = Math.max(initialSvgHeight, maxX - minX + margin.top + margin.bottom + 100);
+      svgElement.transition().duration(duration / 2).attr("height", neededHeight);
+      g.transition().duration(duration / 2).attr("transform", `translate(${margin.left},${margin.top - minX + 40})`);
+
+      nodes.forEach(d => { d.y = d.depth * 400; }); // Adjust horizontal separation if needed
+
+      const node = g.selectAll('g.node').data(nodes, d => d.id || (d.id = ++nodeCounter));
+      const nodeEnter = node.enter().append('g')
+        .attr('class', d => "node" + (d.children || d._children ? " node--internal" : " node--leaf") + (d._children ? " _children" : ""))
+        .attr('transform', d => `translate(${source.y0},${source.x0})`)
+        .on('click', (event, d) => { if (d.children) { d._children = d.children; d.children = null; } else if (d._children) { d.children = d._children; d._children = null; } updateTree(d); })
+        .style('cursor', d => (d.children || d._children) ? 'pointer' : 'default');
+
+      nodeEnter.append('circle').attr('r', 1e-6);
+
+      nodeEnter.append('text')
+        .attr('dy', '.35em')
+        .attr('x', d => d.children || d._children ? -14 : 14)
+        .attr('text-anchor', d => d.children || d._children ? 'end' : 'start')
+        .style("fill-opacity", 1e-6)
+        .call(wrapText, 380);
+
+      const nodeUpdate = nodeEnter.merge(node);
+      nodeUpdate.transition().duration(duration)
+        .attr('transform', d => `translate(${d.y},${d.x})`)
+        .attr('class', d => "node" + (d.children ? " node--internal" : " node--leaf") + (d._children ? " node--internal _children" : ""));
+
+      nodeUpdate.select('circle').attr('r', 8.5)
+        .style('fill', d => {
+            let palette;
+            if (d.depth === 0) {
+                palette = levelSpecificPalettes[0];
+            } else if (d.depth === 1) {
+                palette = phaseColors[d.data.originalStageName] || phaseColors.Default;
+            } else {
+                palette = levelSpecificPalettes[d.depth] || levelSpecificPalettes.default;
+            }
+            if (d._children) return palette.collapsedFill;
+            if (d.children) return palette.fill;
+            return "#fff";
+        })
+        .style('stroke', d => {
+            let palette;
+            if (d.depth === 0) {
+                palette = levelSpecificPalettes[0];
+            } else if (d.depth === 1) {
+                palette = phaseColors[d.data.originalStageName] || phaseColors.Default;
+            } else {
+                palette = levelSpecificPalettes[d.depth] || levelSpecificPalettes.default;
+            }
+            return palette.stroke;
+        });
+      nodeUpdate.select('text').style("fill-opacity", 1).call(wrapText, 380);
+
+      const nodeExit = node.exit().transition().duration(duration).attr('transform', d => `translate(${source.y},${source.x})`).remove();
+      nodeExit.select('circle').attr('r', 1e-6);
+      nodeExit.select('text').style('fill-opacity', 1e-6);
+
+      const link = g.selectAll('path.link').data(links, d => d.id);
+      const linkEnter = link.enter().insert('path', "g").attr('class', 'link').attr('d', d => { const o = { x: source.x0, y: source.y0 }; return diagonal(o, o); });
+
+      linkEnter.merge(link).transition().duration(duration).attr('d', d => diagonal(d, d.parent))
+        .style('stroke', d => {
+            const sourceNode = d.parent;
+            if (!sourceNode) return phaseColors.Default.stroke;
+            const l1AncestorName = sourceNode.data.originalStageName;
+            const colorPalette = phaseColors[l1AncestorName] || phaseColors.Default;
+            return colorPalette.stroke;
+        });
+      link.exit().transition().duration(duration).attr('d', d => { const o = { x: source.x, y: source.y }; return diagonal(o, o); }).remove();
+      nodes.forEach(d => { d.x0 = d.x; d.y0 = d.y; });
+    }
+
+    function diagonal(s, d) { return `M ${s.y} ${s.x} C ${(s.y + d.y) / 2} ${s.x}, ${(s.y + d.y) / 2} ${d.x}, ${d.y} ${d.x}`; }
+
+    function wrapText(textElements, maxWidth) {
+        const textPartColors = {
+            name: '#343a40',
+            count: '#0056b3'
+        };
+        const countRegex = /(\s\(Total Count: \d+\))$/;
+
+        textElements.each(function () {
+            const textD3 = d3.select(this);
+            const originalNodeText = textD3.datum().data.name;
+            const x = parseFloat(textD3.attr("x") || 0);
+            const initialDy = textD3.attr("dy");
+            const textAnchor = textD3.attr("text-anchor");
+            const lineHeight = 1.1;
+
+            textD3.text(null);
+
+            let namePart = originalNodeText;
+            let countPartText = "";
+
+            const countMatch = originalNodeText.match(countRegex);
+            if (countMatch && originalNodeText.endsWith(countMatch[0])) {
+                namePart = originalNodeText.substring(0, originalNodeText.length - countMatch[0].length).trim();
+                countPartText = countMatch[0].trim();
+            }
+
+            const tokens = [];
+            namePart.split(/\s+/).filter(Boolean).forEach(word => {
+                tokens.push({ text: word, type: 'name' });
+            });
+            if (countPartText) {
+                tokens.push({ text: countPartText, type: 'count' });
+            }
+
+            if (tokens.length === 0 && originalNodeText) {
+                tokens.push({ text: originalNodeText, type: 'name' });
+            }
+
+            let currentTspan = textD3.append("tspan").attr("x", x).attr("dy", initialDy);
+            if (textAnchor === "end") currentTspan.attr("text-anchor", "end");
+
+            let lineTokens = [];
+
+            for (let i = 0; i < tokens.length; i++) {
+                const tokenObj = tokens[i];
+
+                lineTokens.push(tokenObj);
+                currentTspan.text(lineTokens.map(t => t.text).join(" "));
+
+                if (currentTspan.node().getComputedTextLength() > maxWidth && lineTokens.length > 1) {
+                    lineTokens.pop();
+
+                    currentTspan.text(null);
+                    lineTokens.forEach((prevToken, idx) => {
+                        currentTspan.append("tspan")
+                            .text((idx > 0 ? " " : "") + prevToken.text)
+                            .style("fill", textPartColors[prevToken.type] || textPartColors.name)
+                            .style("font-weight", prevToken.type === 'count' ? "bold" : "normal");
+                    });
+
+                    lineTokens = [tokenObj];
+                    currentTspan = textD3.append("tspan").attr("x", x).attr("dy", lineHeight + "em");
+                    if (textAnchor === "end") currentTspan.attr("text-anchor", "end");
+                }
+            }
+
+            currentTspan.text(null);
+            lineTokens.forEach((token, idx) => {
+                currentTspan.append("tspan")
+                    .text((idx > 0 ? " " : "") + token.text)
+                    .style("fill", textPartColors[token.type] || textPartColors.name)
+                    .style("font-weight", token.type === 'count' ? "bold" : "normal");
+            });
+
+            if (textD3.selectAll("tspan > tspan").empty() && textD3.select("tspan").text().length === 0 && originalNodeText) {
+                let t = textD3.select("tspan");
+                let displayText = originalNodeText;
+                t.text(displayText).style("fill", textPartColors.name);
+                if (t.node() && t.node().getComputedTextLength() > maxWidth && displayText.length > 20) {
+                    let estimatedChars = Math.floor(maxWidth / (t.node().getComputedTextLength()/displayText.length) );
+                    displayText = displayText.substring(0, Math.max(0, estimatedChars - 3)) + "...";
+                    t.text(displayText);
+                }
+            }
+        });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,1611 @@
+// =============================================================
+// CBC Thane Worship Portal — Google Apps Script Backend
+// Deploy as Web App: Execute as Me, Anyone (even anonymous)
+// =============================================================
+
+var SHEET_ID = SpreadsheetApp.getActiveSpreadsheet().getId();
+var SS = SpreadsheetApp.getActiveSpreadsheet();
+
+// ---------- CORS & Response Helpers ----------
+function corsHeaders() {
+  return {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'Content-Type': 'application/json'
+  };
+}
+
+function ok(data) {
+  return ContentService.createTextOutput(JSON.stringify({ success: true, data: data }))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function err(msg) {
+  return ContentService.createTextOutput(JSON.stringify({ success: false, error: msg }))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+// ---------- Router ----------
+function doGet(e) {
+  try {
+    var action = e.parameter.action;
+    return route(action, e.parameter);
+  } catch(ex) {
+    return err(ex.message);
+  }
+}
+
+function doPost(e) {
+  try {
+    var params = e.parameter;
+    var action = params.action;
+    return route(action, params);
+  } catch(ex) {
+    return err(ex.message);
+  }
+}
+
+function route(action, p) {
+  switch(action) {
+    // Auth
+    case 'ping':               return ok('pong');
+    case 'authenticateUser':   return authenticateUser(p);
+    case 'validateSession':    return validateSession(p);
+    case 'changePassword':     return changePassword(p);
+    case 'requestPasswordReset': return requestPasswordReset(p);
+    case 'initialSetup':       return initialSetup(p);
+
+    // Members
+    case 'getMembers':         return getMembers(p);
+    case 'getMember':          return getMember(p);
+    case 'createMember':       return createMember(p);
+    case 'updateMember':       return updateMember(p);
+    case 'deleteMember':       return deleteMember(p);
+
+    // Assets
+    case 'getAssets':          return getAssets(p);
+    case 'getAsset':           return getAsset(p);
+    case 'createAsset':        return createAsset(p);
+    case 'updateAsset':        return updateAsset(p);
+    case 'deleteAsset':        return deleteAsset(p);
+    case 'checkoutAsset':      return checkoutAsset(p);
+    case 'checkinAsset':       return checkinAsset(p);
+
+    // Maintenance
+    case 'getMaintenanceLogs': return getMaintenanceLogs(p);
+    case 'addMaintenanceLog':  return addMaintenanceLog(p);
+    case 'updateMaintenanceLog': return updateMaintenanceLog(p);
+
+    // Announcements
+    case 'getAnnouncements':   return getAnnouncements(p);
+    case 'createAnnouncement': return createAnnouncement(p);
+    case 'updateAnnouncement': return updateAnnouncement(p);
+    case 'deleteAnnouncement': return deleteAnnouncement(p);
+    case 'markAnnouncementsRead': return markAnnouncementsRead(p);
+
+    // Prayer
+    case 'getPrayerRequests':  return getPrayerRequests(p);
+    case 'createPrayerRequest':return createPrayerRequest(p);
+    case 'updatePrayerRequest':return updatePrayerRequest(p);
+    case 'markAnswered':       return markAnswered(p);
+    case 'deletePrayerRequest':return deletePrayerRequest(p);
+    case 'prayForRequest':     return prayForRequest(p);
+    case 'getAnsweredPrayers': return getAnsweredPrayers(p);
+    case 'getYearEndSummary':  return getYearEndSummary(p);
+
+    // Attendance & Events
+    case 'getEvents':          return getEvents(p);
+    case 'createEvent':        return createEvent(p);
+    case 'getAttendance':      return getAttendance(p);
+    case 'markAttendance':     return markAttendance(p);
+    case 'getMemberAttendance':return getMemberAttendance(p);
+    case 'exportAttendanceCSV':return exportAttendanceCSV(p);
+
+    // Prayer Partners
+    case 'getPrayerPartners':  return getPrayerPartners(p);
+    case 'setPrayerPartners':  return setPrayerPartners(p);
+    case 'autoPairMembers':    return autoPairMembers(p);
+
+    // Facilitator Roster
+    case 'getFacilitatorRoster':    return getFacilitatorRoster(p);
+    case 'updateRosterSlot':        return updateRosterSlot(p);
+
+    // Audition Suggestions
+    case 'getAuditionSuggestions':  return getAuditionSuggestions(p);
+    case 'createSuggestion':        return createSuggestion(p);
+    case 'updateSuggestionStatus':  return updateSuggestionStatus(p);
+
+    // Notifications
+    case 'getNotifications':        return getNotifications(p);
+    case 'markNotificationsRead':   return markNotificationsRead(p);
+
+    // Badges
+    case 'getBadges':               return getBadges(p);
+    case 'awardBadge':              return awardBadge(p);
+
+    // V&M & Quiz
+    case 'getVMContent':            return getVMContent(p);
+    case 'updateVMContent':         return updateVMContent(p);
+    case 'getQuizQuestions':        return getQuizQuestions(p);
+    case 'addQuizQuestion':         return addQuizQuestion(p);
+    case 'deleteQuizQuestion':      return deleteQuizQuestion(p);
+    case 'recordVMReview':          return recordVMReview(p);
+    case 'getVMReviewStatus':       return getVMReviewStatus(p);
+
+    // Onboarding
+    case 'getOnboardingProgress':   return getOnboardingProgress(p);
+    case 'updateOnboardingProgress':return updateOnboardingProgress(p);
+    case 'getOnboardingChecklist':  return getOnboardingChecklist(p);
+    case 'addOnboardingItem':       return addOnboardingItem(p);
+    case 'completeOnboarding':      return completeOnboarding(p);
+
+    // Settings
+    case 'getSettings':             return getSettings(p);
+    case 'getAllSettings':          return getAllSettings(p);
+    case 'updateSettings':          return updateSettings(p);
+
+    // Dashboard
+    case 'getDashboard':            return getDashboard(p);
+
+    // Data management
+    case 'exportData':              return exportData(p);
+    case 'importData':              return importData(p);
+    case 'clearAllData':            return clearAllData(p);
+
+    default: return err('Unknown action: ' + action);
+  }
+}
+
+// ================================================================
+// SHEET HELPERS
+// ================================================================
+function getSheet(name) {
+  var sheet = SS.getSheetByName(name);
+  if (!sheet) throw new Error('Sheet not found: ' + name);
+  return sheet;
+}
+
+function sheetToObjects(sheet) {
+  var data = sheet.getDataRange().getValues();
+  if (data.length < 2) return [];
+  var headers = data[0];
+  return data.slice(1).map(function(row) {
+    var obj = {};
+    headers.forEach(function(h, i) { obj[h] = row[i] === '' ? null : row[i]; });
+    return obj;
+  });
+}
+
+function genId() {
+  return Utilities.getUuid();
+}
+
+function findRowById(sheet, id) {
+  var data = sheet.getDataRange().getValues();
+  for (var i = 1; i < data.length; i++) {
+    if (String(data[i][0]) === String(id)) return i + 1;
+  }
+  return -1;
+}
+
+function getHeaders(sheet) {
+  return sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+}
+
+function appendRow(sheet, obj) {
+  var headers = getHeaders(sheet);
+  var row = headers.map(function(h) { return obj[h] !== undefined ? obj[h] : ''; });
+  sheet.appendRow(row);
+}
+
+function updateRow(sheet, rowNum, obj) {
+  var headers = getHeaders(sheet);
+  var existing = sheet.getRange(rowNum, 1, 1, headers.length).getValues()[0];
+  var updated = headers.map(function(h, i) {
+    return obj[h] !== undefined ? obj[h] : existing[i];
+  });
+  sheet.getRange(rowNum, 1, 1, headers.length).setValues([updated]);
+}
+
+function deleteRow(sheet, rowNum) {
+  sheet.deleteRow(rowNum);
+}
+
+// ================================================================
+// INITIAL SETUP
+// ================================================================
+function initialSetup(p) {
+  ensureSheets();
+  var settings = getSheet('Settings');
+  var existing = sheetToObjects(settings).find(function(s) { return s.key === 'setupComplete'; });
+  if (existing && existing.value === 'true') return err('Setup already completed');
+
+  var adminId = genId();
+  var now = new Date().toISOString();
+
+  // Super Admin
+  appendRow(getSheet('Members'), {
+    id: adminId, name: p.adminName, email: p.adminEmail,
+    passwordHash: p.passwordHash, phone: '', gender: 'Male',
+    instrument: 'Vocals', birthday: '', bio: 'Team Administrator',
+    photoBase64: '', role: 'SUPER_ADMIN', joinDate: now,
+    isOnboarded: true, onboardingStep: 4, fcmToken: '',
+    lastVMReview: '', vmReviewStreak: 0, sessionToken: '', sessionExpiry: '', isActive: true
+  });
+
+  // Sample members
+  var sampleMembers = [
+    { id: genId(), name: 'Sarah Thomas', email: 'sarah@worship.com', passwordHash: p.passwordHash, phone: '+91 98765 43210', gender: 'Female', instrument: 'Vocals', birthday: '15/06', bio: 'Worship vocalist', photoBase64: '', role: 'ADMIN', joinDate: now, isOnboarded: true, onboardingStep: 4, fcmToken: '', lastVMReview: '', vmReviewStreak: 0, sessionToken: '', sessionExpiry: '', isActive: true },
+    { id: genId(), name: 'James Mathew', email: 'james@worship.com', passwordHash: p.passwordHash, phone: '+91 98765 12345', gender: 'Male', instrument: 'Guitar', birthday: '22/03', bio: 'Lead guitarist', photoBase64: '', role: 'MEMBER', joinDate: now, isOnboarded: false, onboardingStep: 0, fcmToken: '', lastVMReview: '', vmReviewStreak: 0, sessionToken: '', sessionExpiry: '', isActive: true },
+    { id: genId(), name: 'Priya Daniel', email: 'priya@worship.com', passwordHash: p.passwordHash, phone: '+91 99887 65432', gender: 'Female', instrument: 'Keyboard', birthday: new Date().getDate() + '/' + (new Date().getMonth() + 1), bio: 'Keyboard player', photoBase64: '', role: 'MEMBER', joinDate: now, isOnboarded: false, onboardingStep: 0, fcmToken: '', lastVMReview: '', vmReviewStreak: 0, sessionToken: '', sessionExpiry: '', isActive: true },
+  ];
+  sampleMembers.forEach(function(m) { appendRow(getSheet('Members'), m); });
+
+  // Settings
+  var settingsRows = [
+    ['setupComplete', 'true'],
+    ['teamName', p.teamName],
+    ['confirmKeyPhrase', 'I commit to serve with excellence'],
+    ['vmReminderDay', '1'],
+    ['prayerPartnerDay', 'Sunday'],
+    ['rosterReminderDays', '3'],
+    ['birthdayTime', '08:00'],
+    ['whatsappLink', ''],
+    ['lastBackupDate', now],
+  ];
+  settingsRows.forEach(function(r) { appendRow(settings, { key: r[0], value: r[1] }); });
+
+  // V&M Content
+  appendRow(settings, { key: 'vmVision', value: 'To be a worship team that ushers the presence of God into every gathering — creating an atmosphere where hearts are transformed, burdens are lifted, and lives are changed through authentic, Spirit-led worship.\n\nWe believe worship is not merely a performance, but an act of surrender — an offering of our whole selves before a holy God.' });
+  appendRow(settings, { key: 'vmMission', value: 'To serve our church family through consistent, prepared, and passionate worship leadership — equipping every person in the congregation to encounter God personally.\n\nWe serve with humility, grow in skill, and pursue the presence of God together as a team.' });
+  appendRow(settings, { key: 'vmValues', value: 'Character over competence — who you are matters more than what you can do.\n\nCommunity over individuality — we grow together, pray together, and serve together.\n\nExcellence in preparation — we honour God by being prepared and practised.\n\nAuthenticity in worship — we do not perform; we encounter.\n\nAccountability to one another — iron sharpens iron.' });
+
+  // Sample assets
+  var assets = [
+    { id: genId(), name: 'Yamaha Acoustic Guitar', category: 'Guitars', subcategory: 'Acoustic', description: 'Primary acoustic guitar for worship', serialNumber: 'YAM-001', condition: 'Good', assignedTo: '', purchaseDate: '2023-01-15', estimatedValue: 15000, status: 'Active', photoBase64: '', notes: 'Keep in humidity-controlled area', checkedOutBy: '', checkedOutAt: '', checkedOutPurpose: '' },
+    { id: genId(), name: 'Shure SM58 Wireless Microphone', category: 'Microphones', subcategory: 'Wireless', description: 'Lead vocal microphone', serialNumber: 'SHU-WL-001', condition: 'Excellent', assignedTo: '', purchaseDate: '2023-03-10', estimatedValue: 8000, status: 'Active', photoBase64: '', notes: 'Batteries checked weekly', checkedOutBy: '', checkedOutAt: '', checkedOutPurpose: '' },
+    { id: genId(), name: 'Roland Keyboard Stand', category: 'Stands & Mounts', subcategory: '', description: 'X-frame stand for keyboard', serialNumber: 'ROL-STD-001', condition: 'Fair', assignedTo: '', purchaseDate: '2022-06-01', estimatedValue: 2000, status: 'Active', photoBase64: '', notes: 'Needs tightening on left joint', checkedOutBy: '', checkedOutAt: '', checkedOutPurpose: '' },
+  ];
+  assets.forEach(function(a) { appendRow(getSheet('Assets'), a); });
+
+  // Sample announcement
+  appendRow(getSheet('Announcements'), {
+    id: genId(), title: 'Welcome to the Worship Portal!',
+    body: 'This is your new team portal. Explore features like asset management, prayer board, attendance tracking, and more. Admins — please set up your Vision & Mission content in Settings.',
+    urgency: 'Info', createdBy: adminId, createdAt: now, readBy: ''
+  });
+
+  // Sample prayer requests
+  appendRow(getSheet('PrayerRequests'), {
+    id: genId(), title: 'Breakthrough in worship this Sunday',
+    detail: 'Praying for God\'s tangible presence to fall as we lead worship this Sunday morning.',
+    isAnonymous: false, postedBy: adminId, postedAt: now, status: 'Believing', prayingMembers: '', testimony: '', answeredAt: ''
+  });
+  appendRow(getSheet('PrayerRequests'), {
+    id: genId(), title: 'Healing for team member',
+    detail: 'Please pray for full healing and recovery.',
+    isAnonymous: true, postedBy: adminId, postedAt: now, status: 'Answered', prayingMembers: adminId, testimony: 'God healed completely — the doctor confirmed it! Praise Him!', answeredAt: now
+  });
+
+  return ok({ message: 'Setup complete', adminId: adminId });
+}
+
+function ensureSheets() {
+  var required = ['Members','Assets','MaintenanceLog','Announcements','PrayerRequests','AnsweredPrayers','Attendance','Events','PrayerPartners','FacilitatorRoster','AuditionSuggestions','Notifications','Badges','OnboardingProgress','VMReviews','Settings'];
+  var headers = {
+    Members: ['id','name','email','passwordHash','phone','gender','instrument','birthday','bio','photoBase64','role','joinDate','isOnboarded','onboardingStep','fcmToken','lastVMReview','vmReviewStreak','sessionToken','sessionExpiry','isActive'],
+    Assets: ['id','name','category','subcategory','description','serialNumber','condition','assignedTo','purchaseDate','estimatedValue','status','photoBase64','notes','checkedOutBy','checkedOutAt','checkedOutPurpose'],
+    MaintenanceLog: ['id','serialNumber','assetId','date','maintenanceType','description','doneBy','cost','nextDueDate','isCompleted','completedAt','submittedBy'],
+    Announcements: ['id','title','body','urgency','createdBy','createdAt','readBy'],
+    PrayerRequests: ['id','title','detail','isAnonymous','postedBy','postedAt','status','prayingMembers','testimony','answeredAt'],
+    AnsweredPrayers: ['id','originalRequestId','title','detail','postedBy','answeredAt','testimony'],
+    Attendance: ['id','eventId','memberId','isPresent','markedAt'],
+    Events: ['id','type','date','notes','createdBy'],
+    PrayerPartners: ['id','member1Id','member2Id','season','pairedAt','isActive'],
+    FacilitatorRoster: ['id','memberId','weekDate','notes','reminderSent'],
+    AuditionSuggestions: ['id','suggestedName','skill','ministry','description','contact','submittedBy','submittedAt','status','adminResponse','respondedAt'],
+    Notifications: ['id','memberId','type','title','body','isRead','createdAt','linkTo'],
+    Badges: ['id','memberId','badgeKey','badgeName','badgeEmoji','awardedAt','isCustom'],
+    OnboardingProgress: ['id','memberId','step','isCompleted','completedAt'],
+    VMReviews: ['id','memberId','completedAt','score','month','year'],
+    Settings: ['key','value'],
+  };
+  required.forEach(function(name) {
+    var sheet = SS.getSheetByName(name);
+    if (!sheet) {
+      sheet = SS.insertSheet(name);
+      sheet.appendRow(headers[name]);
+    }
+  });
+}
+
+// ================================================================
+// AUTHENTICATION
+// ================================================================
+function authenticateUser(p) {
+  var members = sheetToObjects(getSheet('Members'));
+  var member = members.find(function(m) {
+    return String(m.email).toLowerCase() === String(p.email).toLowerCase() &&
+           String(m.passwordHash) === String(p.passwordHash) &&
+           m.isActive;
+  });
+  if (!member) return err('Invalid email or password');
+  var token = genId();
+  var expiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+  var sheet = getSheet('Members');
+  var row = findRowById(sheet, member.id);
+  if (row > 0) updateRow(sheet, row, { sessionToken: token, sessionExpiry: expiry });
+  member.sessionToken = token;
+  member.passwordHash = undefined;
+  return ok(member);
+}
+
+function validateSession(p) {
+  var members = sheetToObjects(getSheet('Members'));
+  var member = members.find(function(m) { return String(m.sessionToken) === String(p.token); });
+  if (!member) return err('Invalid or expired session');
+  if (new Date(member.sessionExpiry) < new Date()) return err('Session expired');
+  member.passwordHash = undefined;
+  return ok(member);
+}
+
+function changePassword(p) {
+  var sheet = getSheet('Members');
+  var members = sheetToObjects(sheet);
+  var member = members.find(function(m) { return String(m.id) === String(p.memberId); });
+  if (!member) return err('Member not found');
+  if (String(member.passwordHash) !== String(p.currentHash)) return err('Current password is incorrect');
+  var row = findRowById(sheet, p.memberId);
+  updateRow(sheet, row, { passwordHash: p.newHash });
+  return ok({ message: 'Password changed successfully' });
+}
+
+function requestPasswordReset(p) {
+  var members = sheetToObjects(getSheet('Members'));
+  var member = members.find(function(m) { return String(m.email).toLowerCase() === String(p.email).toLowerCase(); });
+  if (!member) return ok({ message: 'If that email exists, a reset link has been sent.' });
+  var resetToken = genId();
+  var sheet = getSheet('Members');
+  var row = findRowById(sheet, member.id);
+  updateRow(sheet, row, { sessionToken: resetToken, sessionExpiry: new Date(Date.now() + 3600000).toISOString() });
+  sendEmail(member.email, 'passwordReset', { name: member.name, token: resetToken });
+  return ok({ message: 'Reset link sent' });
+}
+
+// ================================================================
+// MEMBERS
+// ================================================================
+function getMembers(p) {
+  var members = sheetToObjects(getSheet('Members')).filter(function(m) { return m.isActive; });
+  members.forEach(function(m) { m.passwordHash = undefined; m.sessionToken = undefined; });
+  return ok(members);
+}
+
+function getMember(p) {
+  var members = sheetToObjects(getSheet('Members'));
+  var m = members.find(function(m) { return String(m.id) === String(p.id); });
+  if (!m) return err('Member not found');
+  m.passwordHash = undefined; m.sessionToken = undefined;
+  return ok(m);
+}
+
+function createMember(p) {
+  var id = genId();
+  p.id = id;
+  appendRow(getSheet('Members'), p);
+  addNotification(id, 'badge', 'Welcome to the team!', 'Your account has been created. Please complete onboarding.', '/');
+  sendEmail(p.email, 'welcome', { name: p.name });
+  return ok({ id: id });
+}
+
+function updateMember(p) {
+  var sheet = getSheet('Members');
+  var row = findRowById(sheet, p.id);
+  if (row < 0) return err('Member not found');
+  updateRow(sheet, row, p);
+  return ok({ message: 'Updated' });
+}
+
+function deleteMember(p) {
+  var sheet = getSheet('Members');
+  var members = sheetToObjects(sheet);
+  var m = members.find(function(m) { return String(m.id) === String(p.id); });
+  if (!m) return err('Member not found');
+  if (m.role === 'SUPER_ADMIN') return err('Cannot delete Super Admin');
+  var row = findRowById(sheet, p.id);
+  updateRow(sheet, row, { isActive: false });
+  return ok({ message: 'Member removed' });
+}
+
+// ================================================================
+// ASSETS
+// ================================================================
+function getAssets(p) {
+  return ok(sheetToObjects(getSheet('Assets')));
+}
+
+function getAsset(p) {
+  var a = sheetToObjects(getSheet('Assets')).find(function(a) { return String(a.id) === String(p.id); });
+  if (!a) return err('Asset not found');
+  return ok(a);
+}
+
+function createAsset(p) {
+  p.id = genId();
+  appendRow(getSheet('Assets'), p);
+  return ok({ id: p.id });
+}
+
+function updateAsset(p) {
+  var sheet = getSheet('Assets');
+  var row = findRowById(sheet, p.id);
+  if (row < 0) return err('Asset not found');
+  updateRow(sheet, row, p);
+  return ok({ message: 'Updated' });
+}
+
+function deleteAsset(p) {
+  var sheet = getSheet('Assets');
+  var row = findRowById(sheet, p.id);
+  if (row < 0) return err('Asset not found');
+  deleteRow(sheet, row);
+  return ok({ message: 'Deleted' });
+}
+
+function checkoutAsset(p) {
+  var sheet = getSheet('Assets');
+  var assets = sheetToObjects(sheet);
+  var asset = assets.find(function(a) { return String(a.id) === String(p.assetId); });
+  if (!asset) return err('Asset not found');
+  if (asset.checkedOutBy) return err('Asset is already checked out');
+  var row = findRowById(sheet, p.assetId);
+  updateRow(sheet, row, { checkedOutBy: p.memberId, checkedOutAt: new Date().toISOString(), checkedOutPurpose: p.purpose });
+  return ok({ message: 'Checked out' });
+}
+
+function checkinAsset(p) {
+  var sheet = getSheet('Assets');
+  var row = findRowById(sheet, p.assetId);
+  if (row < 0) return err('Asset not found');
+  updateRow(sheet, row, { checkedOutBy: '', checkedOutAt: '', checkedOutPurpose: '' });
+  return ok({ message: 'Returned' });
+}
+
+// ================================================================
+// MAINTENANCE LOG
+// ================================================================
+function getMaintenanceLogs(p) {
+  if (!p.serialNumber) return ok([]);
+  var logs = sheetToObjects(getSheet('MaintenanceLog'));
+  logs = logs.filter(function(l) { return String(l.serialNumber) === String(p.serialNumber); });
+  return ok(logs);
+}
+
+function addMaintenanceLog(p) {
+  p.id = genId();
+  p.isCompleted = false;
+  p.completedAt = '';
+  // Resolve serialNumber from asset so logs are queryable by serial
+  var assetForLog = null;
+  if (p.assetId) {
+    assetForLog = sheetToObjects(getSheet('Assets')).find(function(a) { return String(a.id) === String(p.assetId); });
+    if (assetForLog && !p.serialNumber) p.serialNumber = assetForLog.serialNumber || '';
+  }
+  appendRow(getSheet('MaintenanceLog'), p);
+  // Update asset next due date
+  if (p.assetId && p.nextDueDate) {
+    var sheet = getSheet('Assets');
+    var row = findRowById(sheet, p.assetId);
+    if (row > 0) updateRow(sheet, row, { nextDueDate: p.nextDueDate });
+  }
+  // Notify submitter
+  if (p.submittedBy) {
+    var assetName = assetForLog ? assetForLog.name : (p.serialNumber || 'asset');
+    var nextDueTxt = p.nextDueDate ? p.nextDueDate : 'not set';
+    addNotification(p.submittedBy, 'maintenance',
+      'Maintenance Logged',
+      'Your maintenance log for ' + assetName + ' has been recorded. Next due: ' + nextDueTxt,
+      '/assets/' + (p.serialNumber || ''));
+  }
+  return ok({ id: p.id });
+}
+
+function updateMaintenanceLog(p) {
+  var sheet = getSheet('MaintenanceLog');
+  var row = findRowById(sheet, p.id);
+  if (row < 0) return err('Log not found');
+  var isCompleting = p.isCompleted === 'true' || p.isCompleted === true;
+  if (isCompleting) p.completedAt = new Date().toISOString();
+  // Capture original log before update for notification
+  var originalLog = null;
+  if (isCompleting) {
+    var allLogs = sheetToObjects(sheet);
+    originalLog = allLogs.find(function(l) { return String(l.id) === String(p.id); });
+  }
+  updateRow(sheet, row, p);
+  if (isCompleting && originalLog && originalLog.submittedBy) {
+    var assets = sheetToObjects(getSheet('Assets'));
+    var asset = assets.find(function(a) { return String(a.id) === String(originalLog.assetId); });
+    var assetName = asset ? asset.name : (originalLog.serialNumber || 'asset');
+    var serialNumber = originalLog.serialNumber || '';
+    var completedByMember = sheetToObjects(getSheet('Members')).find(function(m) { return String(m.id) === String(p.completedBy); });
+    var completedByName = completedByMember ? completedByMember.name : 'Admin';
+    // In-app notification
+    addNotification(originalLog.submittedBy, 'maintenance',
+      'Maintenance Complete ✅',
+      'Your maintenance request for ' + assetName + ' has been completed by ' + completedByName,
+      '/assets/' + serialNumber);
+    // Email to submitter
+    var submitter = sheetToObjects(getSheet('Members')).find(function(m) { return String(m.id) === String(originalLog.submittedBy); });
+    if (submitter && submitter.email) {
+      var raisedByMember = sheetToObjects(getSheet('Members')).find(function(m) { return String(m.id) === String(originalLog.submittedBy); });
+      sendEmail(submitter.email, 'maintenanceComplete', {
+        name: submitter.name,
+        assetName: assetName,
+        serialNumber: serialNumber,
+        description: originalLog.description || originalLog.maintenanceType || '—',
+        raisedBy: raisedByMember ? raisedByMember.name : 'You',
+        dateRaised: originalLog.date || '—',
+        completedBy: completedByName,
+        completionDate: p.completedAt
+      });
+    }
+  }
+  return ok({ message: 'Updated' });
+}
+
+// ================================================================
+// ANNOUNCEMENTS
+// ================================================================
+function getAnnouncements(p) {
+  return ok(sheetToObjects(getSheet('Announcements')).sort(function(a,b) { return new Date(b.createdAt) - new Date(a.createdAt); }));
+}
+
+function createAnnouncement(p) {
+  p.id = genId();
+  p.createdAt = new Date().toISOString();
+  p.readBy = '';
+  appendRow(getSheet('Announcements'), p);
+  notifyAllMembers('announcement', '📢 ' + p.title, p.body.substring(0, 100), '/notices');
+  var allMembers = sheetToObjects(getSheet('Members')).filter(function(m) { return m.isActive && m.email; });
+  allMembers.forEach(function(m) {
+    sendEmail(m.email, 'announcement', { title: p.title, body: p.body });
+  });
+  return ok({ id: p.id });
+}
+
+function updateAnnouncement(p) {
+  var sheet = getSheet('Announcements');
+  var row = findRowById(sheet, p.id);
+  if (row < 0) return err('Not found');
+  updateRow(sheet, row, p);
+  return ok({ message: 'Updated' });
+}
+
+function deleteAnnouncement(p) {
+  var sheet = getSheet('Announcements');
+  var row = findRowById(sheet, p.id);
+  if (row < 0) return err('Not found');
+  deleteRow(sheet, row);
+  return ok({ message: 'Deleted' });
+}
+
+function markAnnouncementsRead(p) {
+  var sheet = getSheet('Announcements');
+  var announcements = sheetToObjects(sheet);
+  announcements.forEach(function(a, i) {
+    var readBy = a.readBy ? a.readBy.split(',') : [];
+    if (!readBy.includes(String(p.memberId))) {
+      readBy.push(String(p.memberId));
+      var row = i + 2;
+      updateRow(sheet, row, { readBy: readBy.join(',') });
+    }
+  });
+  return ok({ message: 'Marked read' });
+}
+
+// ================================================================
+// PRAYER REQUESTS
+// ================================================================
+function getPrayerRequests(p) {
+  var requests = sheetToObjects(getSheet('PrayerRequests')).sort(function(a,b) { return new Date(b.postedAt) - new Date(a.postedAt); });
+  var members = sheetToObjects(getSheet('Members'));
+  requests.forEach(function(r) {
+    if (!r.isAnonymous) {
+      var poster = members.find(function(m) { return String(m.id) === String(r.postedBy); });
+      r.posterName = poster ? poster.name : 'A member';
+    }
+  });
+  return ok(requests);
+}
+
+function createPrayerRequest(p) {
+  p.id = genId();
+  p.postedAt = new Date().toISOString();
+  p.status = 'Believing';
+  p.prayingMembers = '';
+  p.testimony = '';
+  p.answeredAt = '';
+  appendRow(getSheet('PrayerRequests'), p);
+  return ok({ id: p.id });
+}
+
+function updatePrayerRequest(p) {
+  var sheet = getSheet('PrayerRequests');
+  var row = findRowById(sheet, p.id);
+  if (row < 0) return err('Not found');
+  updateRow(sheet, row, p);
+  return ok({ message: 'Updated' });
+}
+
+function prayForRequest(p) {
+  var sheet = getSheet('PrayerRequests');
+  var requests = sheetToObjects(sheet);
+  var req = requests.find(function(r) { return String(r.id) === String(p.id); });
+  if (!req) return err('Not found');
+  var praying = req.prayingMembers ? req.prayingMembers.split(',') : [];
+  if (!praying.includes(String(p.memberId))) {
+    praying.push(String(p.memberId));
+    var row = findRowById(sheet, p.id);
+    updateRow(sheet, row, { prayingMembers: praying.join(',') });
+    if (req.postedBy && req.postedBy !== p.memberId) {
+      addNotification(req.postedBy, 'prayer', '🙏 Someone is praying for you', 'A team member is praying for your request: ' + req.title, '/prayer');
+    }
+  }
+  return ok({ message: 'Praying' });
+}
+
+function markAnswered(p) {
+  if (!p.testimony || p.testimony.length < 20) return err('Testimony must be at least 20 characters');
+  var sheet = getSheet('PrayerRequests');
+  var requests = sheetToObjects(sheet);
+  var req = requests.find(function(r) { return String(r.id) === String(p.id); });
+  if (!req) return err('Not found');
+  var now = new Date().toISOString();
+  var row = findRowById(sheet, p.id);
+  updateRow(sheet, row, { status: 'Answered', testimony: p.testimony, answeredAt: now });
+  appendRow(getSheet('AnsweredPrayers'), {
+    id: genId(), originalRequestId: p.id, title: req.title, detail: req.detail,
+    postedBy: req.postedBy, answeredAt: now, testimony: p.testimony
+  });
+  return ok({ message: 'Marked as answered' });
+}
+
+function deletePrayerRequest(p) {
+  var sheet = getSheet('PrayerRequests');
+  var row = findRowById(sheet, p.id);
+  if (row < 0) return err('Not found');
+  deleteRow(sheet, row);
+  return ok({ message: 'Deleted' });
+}
+
+function getAnsweredPrayers(p) {
+  var answered = sheetToObjects(getSheet('AnsweredPrayers')).sort(function(a,b) { return new Date(b.answeredAt) - new Date(a.answeredAt); });
+  var members = sheetToObjects(getSheet('Members'));
+  answered.forEach(function(a) {
+    var poster = members.find(function(m) { return String(m.id) === String(a.postedBy); });
+    a.posterName = poster ? poster.name : 'A member';
+  });
+  return ok(answered);
+}
+
+function getYearEndSummary(p) {
+  var year = parseInt(p.year) || new Date().getFullYear();
+  var answered = sheetToObjects(getSheet('AnsweredPrayers')).filter(function(a) {
+    return a.answeredAt && new Date(a.answeredAt).getFullYear() === year;
+  });
+  var members = sheetToObjects(getSheet('Members'));
+  answered.forEach(function(a) {
+    var poster = members.find(function(m) { return String(m.id) === String(a.postedBy); });
+    a.posterName = poster ? poster.name : 'A member';
+  });
+  return ok(answered);
+}
+
+// ================================================================
+// ATTENDANCE & EVENTS
+// ================================================================
+function getEvents(p) {
+  return ok(sheetToObjects(getSheet('Events')).sort(function(a,b) { return new Date(b.date) - new Date(a.date); }));
+}
+
+function createEvent(p) {
+  p.id = genId();
+  appendRow(getSheet('Events'), p);
+  return ok({ id: p.id });
+}
+
+function getAttendance(p) {
+  var att = sheetToObjects(getSheet('Attendance'));
+  if (p.eventId) att = att.filter(function(a) { return String(a.eventId) === String(p.eventId); });
+  return ok(att);
+}
+
+function markAttendance(p) {
+  var sheet = getSheet('Attendance');
+  var records = sheetToObjects(sheet);
+  var existing = records.find(function(a) {
+    return String(a.eventId) === String(p.eventId) && String(a.memberId) === String(p.memberId);
+  });
+  if (existing) {
+    var row = findRowById(sheet, existing.id);
+    updateRow(sheet, row, { isPresent: p.isPresent === 'true' || p.isPresent === true, markedAt: new Date().toISOString() });
+  } else {
+    appendRow(sheet, { id: genId(), eventId: p.eventId, memberId: p.memberId, isPresent: p.isPresent === 'true' || p.isPresent === true, markedAt: new Date().toISOString() });
+  }
+  return ok({ message: 'Marked' });
+}
+
+function getMemberAttendance(p) {
+  var records = sheetToObjects(getSheet('Attendance')).filter(function(a) { return String(a.memberId) === String(p.memberId); });
+  var threeMonthsAgo = new Date();
+  threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+  var events = sheetToObjects(getSheet('Events')).filter(function(e) { return new Date(e.date) >= threeMonthsAgo; });
+  var attended = records.filter(function(r) {
+    var ev = events.find(function(e) { return String(e.id) === String(r.eventId); });
+    return ev && (r.isPresent === true || r.isPresent === 'true' || r.isPresent === 'TRUE');
+  }).length;
+  var pct = events.length > 0 ? Math.round((attended / events.length) * 100) : 0;
+  return ok({ records: records, pct: pct, total: events.length, attended: attended });
+}
+
+function exportAttendanceCSV(p) {
+  var events = sheetToObjects(getSheet('Events'));
+  var members = sheetToObjects(getSheet('Members')).filter(function(m) { return m.isActive; });
+  var attendance = sheetToObjects(getSheet('Attendance'));
+  var headers = ['Member', 'Role', 'Instrument'].concat(events.map(function(e) { return e.type + ' ' + e.date; }));
+  var rows = members.map(function(m) {
+    var cols = [m.name, m.role, m.instrument];
+    events.forEach(function(e) {
+      var rec = attendance.find(function(a) { return String(a.eventId) === String(e.id) && String(a.memberId) === String(m.id); });
+      cols.push(rec ? (rec.isPresent ? 'P' : 'A') : '-');
+    });
+    return cols;
+  });
+  var csv = [headers].concat(rows).map(function(r) { return r.join(','); }).join('\n');
+  return ok({ csv: csv });
+}
+
+// ================================================================
+// PRAYER PARTNERS
+// ================================================================
+function getPrayerPartners(p) {
+  var pairs = sheetToObjects(getSheet('PrayerPartners')).filter(function(p) { return p.isActive; });
+  var members = sheetToObjects(getSheet('Members'));
+  pairs.forEach(function(pair) {
+    var m1 = members.find(function(m) { return String(m.id) === String(pair.member1Id); });
+    var m2 = members.find(function(m) { return String(m.id) === String(pair.member2Id); });
+    pair.member1Name = m1 ? m1.name : '';
+    pair.member2Name = m2 ? m2.name : '';
+    pair.member1Photo = m1 ? m1.photoBase64 : '';
+    pair.member2Photo = m2 ? m2.photoBase64 : '';
+    pair.member1Instrument = m1 ? m1.instrument : '';
+    pair.member2Instrument = m2 ? m2.instrument : '';
+    pair.member1Phone = m1 ? m1.phone : '';
+    pair.member2Phone = m2 ? m2.phone : '';
+  });
+  return ok(pairs);
+}
+
+function setPrayerPartners(p) {
+  var sheet = getSheet('PrayerPartners');
+  var pairs = JSON.parse(p.pairs);
+  var season = p.season || 'Season';
+  // Deactivate existing
+  var existing = sheetToObjects(sheet);
+  existing.forEach(function(pair, i) {
+    if (pair.isActive) {
+      var row = i + 2;
+      updateRow(sheet, row, { isActive: false });
+    }
+  });
+  // Add new
+  pairs.forEach(function(pair) {
+    appendRow(sheet, {
+      id: genId(), member1Id: pair.member1Id, member2Id: pair.member2Id,
+      season: season, pairedAt: new Date().toISOString(), isActive: true
+    });
+    addNotification(pair.member1Id, 'partner', '💌 New Prayer Partner', 'You have a new prayer partner for ' + season, '/');
+    addNotification(pair.member2Id, 'partner', '💌 New Prayer Partner', 'You have a new prayer partner for ' + season, '/');
+  });
+  return ok({ message: 'Partners set' });
+}
+
+function autoPairMembers(p) {
+  var members = sheetToObjects(getSheet('Members')).filter(function(m) { return m.isActive; });
+  var males = members.filter(function(m) { return m.gender === 'Male'; });
+  var females = members.filter(function(m) { return m.gender === 'Female'; });
+  function shuffle(arr) {
+    for (var i = arr.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var temp = arr[i]; arr[i] = arr[j]; arr[j] = temp;
+    }
+    return arr;
+  }
+  shuffle(males); shuffle(females);
+  var pairs = [];
+  for (var i = 0; i + 1 < males.length; i += 2) {
+    pairs.push({ member1Id: males[i].id, member2Id: males[i+1].id });
+  }
+  for (var j = 0; j + 1 < females.length; j += 2) {
+    pairs.push({ member1Id: females[j].id, member2Id: females[j+1].id });
+  }
+  return ok(pairs);
+}
+
+// Run daily at 1pm — sends each member a reminder to pray for their partner
+function sendDailyPrayerReminder() {
+  var pairs = sheetToObjects(getSheet('PrayerPartners')).filter(function(p) { return p.isActive; });
+  if (pairs.length === 0) return;
+  var members = sheetToObjects(getSheet('Members')).filter(function(m) { return m.isActive; });
+
+  // Build memberId → [partnerObjects] map (handles trios where one member has 2 entries)
+  var partnerMap = {};
+  pairs.forEach(function(pair) {
+    var m1 = members.find(function(m) { return String(m.id) === String(pair.member1Id); });
+    var m2 = members.find(function(m) { return String(m.id) === String(pair.member2Id); });
+    if (!partnerMap[pair.member1Id]) partnerMap[pair.member1Id] = [];
+    if (!partnerMap[pair.member2Id]) partnerMap[pair.member2Id] = [];
+    if (m2) partnerMap[pair.member1Id].push(m2);
+    if (m1) partnerMap[pair.member2Id].push(m1);
+  });
+
+  members.forEach(function(member) {
+    var partners = partnerMap[member.id];
+    if (!partners || partners.length === 0) return;
+    var names = partners.map(function(p) { return p.name; }).join(' & ');
+    var body = 'Pray for ' + names + ' today 🙏';
+    addNotification(member.id, 'partner', 'Prayer Partner Reminder', body, '/');
+    if (member.fcmToken) {
+      sendPushNotification([member.fcmToken], 'Prayer Partner Reminder', body);
+    }
+  });
+}
+
+// Run daily at 12pm — rotates prayer partners when current pairing is 30+ days old
+function checkAndRotatePrayerPartners() {
+  var sheet = getSheet('PrayerPartners');
+  var allPairs = sheetToObjects(sheet);
+  var activePairs = allPairs.filter(function(p) { return p.isActive; });
+  if (activePairs.length === 0) return;
+
+  var oldest = activePairs.reduce(function(acc, pair) {
+    return (!acc || new Date(pair.pairedAt) < new Date(acc.pairedAt)) ? pair : acc;
+  }, null);
+  var daysSince = (Date.now() - new Date(oldest.pairedAt).getTime()) / 86400000;
+  if (daysSince < 30) return;
+
+  // Deactivate all current pairs
+  allPairs.forEach(function(pair, i) {
+    if (pair.isActive) updateRow(sheet, i + 2, { isActive: false });
+  });
+
+  var members = sheetToObjects(getSheet('Members')).filter(function(m) { return m.isActive; });
+  var males   = members.filter(function(m) { return m.gender === 'Male'; });
+  var females = members.filter(function(m) { return m.gender === 'Female'; });
+
+  function shuffle(arr) {
+    for (var i = arr.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = arr[i]; arr[i] = arr[j]; arr[j] = tmp;
+    }
+    return arr;
+  }
+
+  // Pairs within a gender group; if odd, last 3 become a trio: (a,b) + (a,c)
+  function buildPairs(group) {
+    var result = [];
+    if (group.length <= 1) return result;
+    if (group.length === 3) {
+      result.push({ member1Id: group[0].id, member2Id: group[1].id });
+      result.push({ member1Id: group[0].id, member2Id: group[2].id });
+      return result;
+    }
+    var limit = group.length % 2 === 0 ? group.length : group.length - 3;
+    for (var i = 0; i < limit; i += 2) {
+      result.push({ member1Id: group[i].id, member2Id: group[i + 1].id });
+    }
+    if (group.length % 2 === 1) {
+      var a = group[group.length - 3], b = group[group.length - 2], c = group[group.length - 1];
+      result.push({ member1Id: a.id, member2Id: b.id });
+      result.push({ member1Id: a.id, member2Id: c.id });
+    }
+    return result;
+  }
+
+  shuffle(males); shuffle(females);
+  var newPairs = buildPairs(males).concat(buildPairs(females));
+
+  var now = new Date();
+  var MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  var season = MONTHS[now.getMonth()] + ' ' + now.getFullYear();
+
+  newPairs.forEach(function(pair) {
+    appendRow(sheet, { id: genId(), member1Id: pair.member1Id, member2Id: pair.member2Id, season: season, pairedAt: now.toISOString(), isActive: true });
+  });
+
+  members.forEach(function(m) {
+    addNotification(m.id, 'partner', '💌 Prayer Partners Updated', 'New prayer partners for ' + season + ' have been assigned. Check your partner on the home screen.', '/');
+  });
+}
+
+// ================================================================
+// FACILITATOR ROSTER
+// ================================================================
+function getFacilitatorRoster(p) {
+  return ok(sheetToObjects(getSheet('FacilitatorRoster')));
+}
+
+function updateRosterSlot(p) {
+  var sheet = getSheet('FacilitatorRoster');
+  var roster = sheetToObjects(sheet);
+  var existing = roster.find(function(r) { return String(r.weekDate) === String(p.weekDate); });
+  if (existing) {
+    var row = findRowById(sheet, existing.id);
+    updateRow(sheet, row, { memberId: p.memberId, notes: p.notes || '', reminderSent: false });
+  } else {
+    appendRow(sheet, { id: genId(), memberId: p.memberId, weekDate: p.weekDate, notes: p.notes || '', reminderSent: false });
+  }
+  if (p.memberId) {
+    addNotification(p.memberId, 'roster', '📅 Prayer Facilitator Slot', 'You have been assigned to lead prayer on ' + p.weekDate, '/roster');
+  }
+  return ok({ message: 'Updated' });
+}
+
+// ================================================================
+// AUDITION SUGGESTIONS
+// ================================================================
+function getAuditionSuggestions(p) {
+  return ok(sheetToObjects(getSheet('AuditionSuggestions')).sort(function(a,b) { return new Date(b.submittedAt) - new Date(a.submittedAt); }));
+}
+
+function createSuggestion(p) {
+  p.id = genId();
+  p.submittedAt = new Date().toISOString();
+  p.status = 'Following Up';
+  p.adminResponse = '';
+  p.respondedAt = '';
+  appendRow(getSheet('AuditionSuggestions'), p);
+  var admins = sheetToObjects(getSheet('Members')).filter(function(m) { return m.role === 'ADMIN' || m.role === 'SUPER_ADMIN'; });
+  admins.forEach(function(admin) {
+    addNotification(admin.id, 'audition', '🎵 New Talent Suggestion', p.suggestedName + ' — ' + p.skill + ' for ' + p.ministry, '/auditions');
+    sendEmail(admin.email, 'audition', { name: admin.name, suggestedName: p.suggestedName, skill: p.skill, ministry: p.ministry });
+  });
+  return ok({ id: p.id });
+}
+
+function updateSuggestionStatus(p) {
+  var sheet = getSheet('AuditionSuggestions');
+  var row = findRowById(sheet, p.id);
+  if (row < 0) return err('Not found');
+  updateRow(sheet, row, { status: p.status, adminResponse: p.adminResponse || '', respondedAt: new Date().toISOString() });
+  var suggestion = sheetToObjects(sheet).find(function(s) { return String(s.id) === String(p.id); });
+  if (suggestion && suggestion.submittedBy) {
+    addNotification(suggestion.submittedBy, 'audition', 'Update on your suggestion', 'Status changed to: ' + p.status, '/auditions');
+  }
+  return ok({ message: 'Updated' });
+}
+
+// ================================================================
+// NOTIFICATIONS
+// ================================================================
+function getNotifications(p) {
+  var thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+  var notifs = sheetToObjects(getSheet('Notifications')).filter(function(n) {
+    return String(n.memberId) === String(p.memberId) && n.createdAt > thirtyDaysAgo;
+  }).sort(function(a,b) { return new Date(b.createdAt) - new Date(a.createdAt); });
+  return ok(notifs);
+}
+
+function markNotificationsRead(p) {
+  var sheet = getSheet('Notifications');
+  var notifs = sheetToObjects(sheet);
+  if (p.all) {
+    notifs.forEach(function(n, i) {
+      if (String(n.memberId) === String(p.memberId) && !n.isRead) {
+        updateRow(sheet, i + 2, { isRead: true });
+      }
+    });
+  } else if (p.id) {
+    var row = findRowById(sheet, p.id);
+    if (row > 0) updateRow(sheet, row, { isRead: true });
+  }
+  return ok({ message: 'Marked read' });
+}
+
+function addNotification(memberId, type, title, body, linkTo) {
+  appendRow(getSheet('Notifications'), {
+    id: genId(), memberId: memberId, type: type, title: title,
+    body: body, isRead: false, createdAt: new Date().toISOString(), linkTo: linkTo || '/'
+  });
+}
+
+function notifyAllMembers(type, title, body, linkTo) {
+  var members = sheetToObjects(getSheet('Members')).filter(function(m) { return m.isActive; });
+  members.forEach(function(m) { addNotification(m.id, type, title, body, linkTo); });
+}
+
+// ================================================================
+// BADGES
+// ================================================================
+function getBadges(p) {
+  var badges = sheetToObjects(getSheet('Badges'));
+  if (p.memberId) badges = badges.filter(function(b) { return String(b.memberId) === String(p.memberId); });
+  return ok(badges);
+}
+
+function awardBadge(p) {
+  var existing = sheetToObjects(getSheet('Badges')).find(function(b) {
+    return String(b.memberId) === String(p.memberId) && String(b.badgeKey) === String(p.badgeKey);
+  });
+  if (existing) return ok({ message: 'Already awarded' });
+  appendRow(getSheet('Badges'), {
+    id: genId(), memberId: p.memberId, badgeKey: p.badgeKey,
+    badgeName: p.badgeName, badgeEmoji: p.badgeEmoji,
+    awardedAt: new Date().toISOString(), isCustom: p.isCustom || false
+  });
+  addNotification(p.memberId, 'badge', p.badgeEmoji + ' Badge Earned: ' + p.badgeName, 'Congratulations! You\'ve earned the ' + p.badgeName + ' badge.', '/profile');
+  return ok({ message: 'Badge awarded' });
+}
+
+// ================================================================
+// V&M & QUIZ
+// ================================================================
+function getVMContent(p) {
+  var settings = sheetToObjects(getSheet('Settings'));
+  var result = {};
+  settings.forEach(function(s) {
+    if (s.key === 'vmVision') result.vision = s.value;
+    if (s.key === 'vmMission') result.mission = s.value;
+    if (s.key === 'vmValues') result.values = s.value;
+  });
+  return ok(result);
+}
+
+function updateVMContent(p) {
+  var sheet = getSheet('Settings');
+  var settings = sheetToObjects(sheet);
+  ['vision','mission','values'].forEach(function(key) {
+    if (p[key] === undefined) return;
+    var settingsKey = 'vm' + key.charAt(0).toUpperCase() + key.slice(1);
+    var existing = settings.find(function(s) { return s.key === settingsKey; });
+    if (existing) {
+      var row = findRowById(sheet, settingsKey);
+      if (row > 0) updateRow(sheet, row, { value: p[key] });
+      else { var r = settings.findIndex(function(s) { return s.key === settingsKey; }); if (r >= 0) sheet.getRange(r + 2, 2).setValue(p[key]); }
+    } else {
+      appendRow(sheet, { key: settingsKey, value: p[key] });
+    }
+  });
+  return ok({ message: 'V&M updated' });
+}
+
+function getQuizQuestions(p) {
+  var settings = sheetToObjects(getSheet('Settings'));
+  var qs = settings.find(function(s) { return s.key === 'quizQuestions'; });
+  if (!qs || !qs.value) return ok([]);
+  try { return ok(JSON.parse(qs.value)); } catch { return ok([]); }
+}
+
+function addQuizQuestion(p) {
+  var sheet = getSheet('Settings');
+  var settings = sheetToObjects(sheet);
+  var existing = settings.find(function(s) { return s.key === 'quizQuestions'; });
+  var questions = [];
+  if (existing && existing.value) { try { questions = JSON.parse(existing.value); } catch {} }
+  questions.push({ id: genId(), question: p.question, options: JSON.parse(p.options || '[]'), correctIndex: parseInt(p.correctIndex) });
+  var row = existing ? findRowByKey(sheet, 'quizQuestions') : -1;
+  if (row > 0) { sheet.getRange(row, 2).setValue(JSON.stringify(questions)); }
+  else { appendRow(sheet, { key: 'quizQuestions', value: JSON.stringify(questions) }); }
+  return ok({ message: 'Question added' });
+}
+
+function deleteQuizQuestion(p) {
+  var sheet = getSheet('Settings');
+  var settings = sheetToObjects(sheet);
+  var existing = settings.find(function(s) { return s.key === 'quizQuestions'; });
+  if (!existing) return ok({ message: 'No questions' });
+  var questions = [];
+  try { questions = JSON.parse(existing.value); } catch {}
+  questions = questions.filter(function(q) { return String(q.id) !== String(p.id); });
+  var row = findRowByKey(sheet, 'quizQuestions');
+  if (row > 0) sheet.getRange(row, 2).setValue(JSON.stringify(questions));
+  return ok({ message: 'Deleted' });
+}
+
+function findRowByKey(sheet, key) {
+  var data = sheet.getDataRange().getValues();
+  for (var i = 1; i < data.length; i++) {
+    if (String(data[i][0]) === String(key)) return i + 1;
+  }
+  return -1;
+}
+
+function recordVMReview(p) {
+  var now = new Date();
+  appendRow(getSheet('VMReviews'), {
+    id: genId(), memberId: p.memberId, completedAt: now.toISOString(),
+    score: 100, month: now.getMonth() + 1, year: now.getFullYear()
+  });
+  var sheet = getSheet('Members');
+  var row = findRowById(sheet, p.memberId);
+  if (row > 0) {
+    var members = sheetToObjects(sheet);
+    var member = members.find(function(m) { return String(m.id) === String(p.memberId); });
+    var streak = parseInt(member.vmReviewStreak || 0) + 1;
+    updateRow(sheet, row, { lastVMReview: now.toISOString(), vmReviewStreak: streak });
+  }
+  return ok({ message: 'Review recorded' });
+}
+
+function getVMReviewStatus(p) {
+  var now = new Date();
+  var month = now.getMonth() + 1;
+  var year = now.getFullYear();
+  var reviews = sheetToObjects(getSheet('VMReviews')).filter(function(r) {
+    return parseInt(r.month) === month && parseInt(r.year) === year;
+  });
+  if (p.memberId) {
+    var myReview = reviews.find(function(r) { return String(r.memberId) === String(p.memberId); });
+    return ok({ done: !!myReview, review: myReview || null });
+  }
+  return ok(reviews);
+}
+
+// ================================================================
+// ONBOARDING
+// ================================================================
+function getOnboardingProgress(p) {
+  var prog = sheetToObjects(getSheet('OnboardingProgress')).filter(function(op) { return String(op.memberId) === String(p.memberId); });
+  return ok(prog);
+}
+
+function updateOnboardingProgress(p) {
+  var sheet = getSheet('OnboardingProgress');
+  var records = sheetToObjects(sheet);
+  var existing = records.find(function(r) { return String(r.memberId) === String(p.memberId) && String(r.step) === String(p.step); });
+  if (existing) {
+    var row = findRowById(sheet, existing.id);
+    updateRow(sheet, row, { isCompleted: p.isCompleted === 'true' || p.isCompleted === true, completedAt: new Date().toISOString() });
+  } else {
+    appendRow(sheet, { id: genId(), memberId: p.memberId, step: p.step, isCompleted: p.isCompleted === 'true' || p.isCompleted === true, completedAt: new Date().toISOString() });
+  }
+  return ok({ message: 'Updated' });
+}
+
+function getOnboardingChecklist(p) {
+  var settings = sheetToObjects(getSheet('Settings'));
+  var existing = settings.find(function(s) { return s.key === 'onboardingChecklist'; });
+  if (!existing || !existing.value) {
+    return ok([
+      { id: 'attend_rehearsal', title: 'Attend your first rehearsal', description: 'Join the team for a Sunday rehearsal.', required: true },
+      { id: 'meet_leader', title: 'Meet with worship leader', description: 'Schedule a brief 1-on-1 with the worship leader.', required: true },
+      { id: 'join_group', title: 'Join team WhatsApp group', description: 'Get added to the team group for updates and coordination.', required: true },
+      { id: 'read_handbook', title: 'Read the team handbook', description: 'Available from your worship leader.', required: false },
+    ]);
+  }
+  try { return ok(JSON.parse(existing.value)); } catch { return ok([]); }
+}
+
+function addOnboardingItem(p) {
+  var sheet = getSheet('Settings');
+  var settings = sheetToObjects(sheet);
+  var existing = settings.find(function(s) { return s.key === 'onboardingChecklist'; });
+  var items = [];
+  if (existing && existing.value) { try { items = JSON.parse(existing.value); } catch {} }
+  items.push({ id: genId(), title: p.title, description: p.description || '', required: p.required === 'true' || p.required === true });
+  var row = existing ? findRowByKey(sheet, 'onboardingChecklist') : -1;
+  if (row > 0) sheet.getRange(row, 2).setValue(JSON.stringify(items));
+  else appendRow(sheet, { key: 'onboardingChecklist', value: JSON.stringify(items) });
+  return ok({ message: 'Item added' });
+}
+
+function completeOnboarding(p) {
+  var sheet = getSheet('Members');
+  var row = findRowById(sheet, p.memberId);
+  if (row < 0) return err('Member not found');
+  updateRow(sheet, row, { isOnboarded: true, onboardingStep: 4 });
+  awardBadge({ memberId: p.memberId, badgeKey: 'onboarded', badgeName: 'Onboarded', badgeEmoji: '✅', isCustom: false });
+  var admins = sheetToObjects(getSheet('Members')).filter(function(m) { return m.role === 'ADMIN' || m.role === 'SUPER_ADMIN'; });
+  var member = sheetToObjects(sheet).find(function(m) { return String(m.id) === String(p.memberId); });
+  admins.forEach(function(admin) {
+    addNotification(admin.id, 'onboarding', '✅ Member Onboarded', (member ? member.name : 'A member') + ' has completed onboarding!', '/settings');
+    sendEmail(admin.email, 'onboarding', { name: admin.name, memberName: member ? member.name : 'A member' });
+  });
+  return ok({ message: 'Onboarding complete' });
+}
+
+// ================================================================
+// SETTINGS
+// ================================================================
+function getSettings(p) {
+  var settings = sheetToObjects(getSheet('Settings'));
+  if (p.key) {
+    var s = settings.find(function(s) { return s.key === p.key; });
+    return ok(s || null);
+  }
+  return ok(settings);
+}
+
+function getAllSettings(p) {
+  return ok(sheetToObjects(getSheet('Settings')));
+}
+
+function updateSettings(p) {
+  var sheet = getSheet('Settings');
+  var row = findRowByKey(sheet, p.key);
+  if (row > 0) sheet.getRange(row, 2).setValue(p.value);
+  else appendRow(sheet, { key: p.key, value: p.value });
+  return ok({ message: 'Saved' });
+}
+
+// ================================================================
+// DASHBOARD
+// ================================================================
+function getDashboard(p) {
+  var memberId = p.memberId;
+  var role = p.role;
+  var now = new Date();
+  var thisMonth = now.getMonth() + 1;
+  var thisYear = now.getFullYear();
+
+  var members = sheetToObjects(getSheet('Members')).filter(function(m) { return m.isActive; });
+  var member = members.find(function(m) { return String(m.id) === String(memberId); });
+
+  // VM Status
+  var vmReviews = sheetToObjects(getSheet('VMReviews'));
+  var myReview = vmReviews.find(function(r) {
+    return String(r.memberId) === String(memberId) && parseInt(r.month) === thisMonth && parseInt(r.year) === thisYear;
+  });
+  var vmStatus = myReview ? 'done' : (now.getDate() > 20 ? 'overdue' : 'due');
+
+  // Prayer partner
+  var pairs = sheetToObjects(getSheet('PrayerPartners')).filter(function(p) { return p.isActive; });
+  var myPair = pairs.find(function(p) { return String(p.member1Id) === String(memberId) || String(p.member2Id) === String(memberId); });
+  var partnerId = null;
+  if (myPair) partnerId = String(myPair.member1Id) === String(memberId) ? myPair.member2Id : myPair.member1Id;
+  var partner = partnerId ? members.find(function(m) { return String(m.id) === String(partnerId); }) : null;
+  if (partner) { partner.passwordHash = undefined; partner.sessionToken = undefined; }
+
+  // Birthdays
+  function daysUntil(ddmm) {
+    if (!ddmm) return 999;
+    var parts = ddmm.toString().split('/');
+    var d = parseInt(parts[0]); var mo = parseInt(parts[1]);
+    var year = now.getFullYear();
+    var bday = new Date(year, mo - 1, d);
+    if (bday < now) bday = new Date(year + 1, mo - 1, d);
+    return Math.ceil((bday - now) / 86400000);
+  }
+  var birthdays = members.map(function(m) { return { id: m.id, name: m.name, instrument: m.instrument, birthday: m.birthday, daysUntil: daysUntil(m.birthday) }; })
+    .filter(function(m) { return m.daysUntil <= 14; })
+    .sort(function(a,b) { return a.daysUntil - b.daysUntil; });
+
+  // Latest announcement
+  var announcements = sheetToObjects(getSheet('Announcements')).sort(function(a,b) { return new Date(b.createdAt) - new Date(a.createdAt); });
+  var latestAnnouncement = announcements[0] || null;
+
+  // Badges
+  var badges = sheetToObjects(getSheet('Badges')).filter(function(b) { return String(b.memberId) === String(memberId); });
+
+  // Attendance
+  var attResult = getMemberAttendance({ memberId: memberId });
+  var attData = JSON.parse(attResult.getContent()).data;
+  var attendancePct = attData ? attData.pct : 0;
+
+  var result = { vmStatus: vmStatus, prayerPartner: partner, partnerSeason: myPair ? myPair.season : '', upcomingBirthdays: birthdays, latestAnnouncement: latestAnnouncement, badges: badges, attendancePct: attendancePct };
+
+  if (role === 'ADMIN' || role === 'SUPER_ADMIN') {
+    var assets = sheetToObjects(getSheet('Assets'));
+    var maintenanceLogs = sheetToObjects(getSheet('MaintenanceLog'));
+    var onboardedCount = members.filter(function(m) { return m.isOnboarded; }).length;
+    var vmDoneThisMonth = vmReviews.filter(function(r) { return parseInt(r.month) === thisMonth && parseInt(r.year) === thisYear; }).map(function(r) { return r.memberId; });
+    var vmCompliancePct = members.length > 0 ? Math.round((vmDoneThisMonth.length / members.length) * 100) : 0;
+    var vmOverdue = members.filter(function(m) { return !vmDoneThisMonth.includes(String(m.id)); }).map(function(m) { return { id: m.id, name: m.name }; });
+
+    // Maintenance alerts
+    var nowDate = now.getTime();
+    var maintenanceAlerts = assets.filter(function(a) {
+      if (!a.nextDueDate) return false;
+      var due = new Date(a.nextDueDate).getTime();
+      var diff = (due - nowDate) / 86400000;
+      return diff <= 30;
+    }).map(function(a) {
+      var diff = (new Date(a.nextDueDate).getTime() - nowDate) / 86400000;
+      return { assetId: a.id, assetName: a.name, nextDueDate: a.nextDueDate, overdue: diff < 0 };
+    });
+
+    // Roster
+    var roster = sheetToObjects(getSheet('FacilitatorRoster'));
+    var upcoming = roster.filter(function(r) { return new Date(r.weekDate) >= now; })
+      .sort(function(a,b) { return new Date(a.weekDate) - new Date(b.weekDate); })
+      .slice(0, 2);
+    upcoming.forEach(function(slot) {
+      var m = members.find(function(m) { return String(m.id) === String(slot.memberId); });
+      slot.memberName = m ? m.name : 'Unassigned';
+    });
+
+    var pendingAuditions = sheetToObjects(getSheet('AuditionSuggestions')).filter(function(s) { return s.status === 'Following Up'; }).length;
+    var assetsNeedingAttention = assets.filter(function(a) { return a.condition === 'Needs Repair'; }).length;
+
+    Object.assign(result, {
+      totalAssets: assets.length, assetsNeedingAttention: assetsNeedingAttention,
+      totalMembers: members.length, onboardedPct: Math.round((onboardedCount / members.length) * 100),
+      vmCompliancePct: vmCompliancePct, vmOverdue: vmOverdue,
+      maintenanceAlerts: maintenanceAlerts, upcomingRoster: upcoming,
+      pendingAuditions: pendingAuditions
+    });
+  }
+
+  if (role === 'SUPER_ADMIN') {
+    var lastBackup = sheetToObjects(getSheet('Settings')).find(function(s) { return s.key === 'lastBackupDate'; });
+    result.lastBackupDate = lastBackup ? lastBackup.value : null;
+  }
+
+  return ok(result);
+}
+
+// ================================================================
+// DATA MANAGEMENT
+// ================================================================
+function exportData(p) {
+  var sheetNames = ['Members','Assets','MaintenanceLog','Announcements','PrayerRequests','AnsweredPrayers','Attendance','Events','PrayerPartners','FacilitatorRoster','AuditionSuggestions','Notifications','Badges','OnboardingProgress','VMReviews','Settings'];
+  var data = {};
+  sheetNames.forEach(function(name) {
+    try { data[name] = sheetToObjects(getSheet(name)); } catch {}
+  });
+  updateSettings({ key: 'lastBackupDate', value: new Date().toISOString() });
+  return ok(data);
+}
+
+function importData(p) {
+  var data = JSON.parse(p.data);
+  Object.keys(data).forEach(function(sheetName) {
+    try {
+      var sheet = getSheet(sheetName);
+      var lastRow = sheet.getLastRow();
+      if (lastRow > 1) sheet.deleteRows(2, lastRow - 1);
+      var rows = data[sheetName];
+      var headers = getHeaders(sheet);
+      rows.forEach(function(row) {
+        var rowData = headers.map(function(h) { return row[h] !== undefined ? row[h] : ''; });
+        sheet.appendRow(rowData);
+      });
+    } catch(ex) { Logger.log('Import error for ' + sheetName + ': ' + ex.message); }
+  });
+  return ok({ message: 'Import complete' });
+}
+
+function clearAllData(p) {
+  var sheetNames = ['Members','Assets','MaintenanceLog','Announcements','PrayerRequests','AnsweredPrayers','Attendance','Events','PrayerPartners','FacilitatorRoster','AuditionSuggestions','Notifications','Badges','OnboardingProgress','VMReviews'];
+  sheetNames.forEach(function(name) {
+    try {
+      var sheet = getSheet(name);
+      var lastRow = sheet.getLastRow();
+      if (lastRow > 1) sheet.deleteRows(2, lastRow - 1);
+    } catch {}
+  });
+  var settingsSheet = getSheet('Settings');
+  var lastRow = settingsSheet.getLastRow();
+  if (lastRow > 1) settingsSheet.deleteRows(2, lastRow - 1);
+  appendRow(settingsSheet, { key: 'setupComplete', value: 'false' });
+  return ok({ message: 'All data cleared' });
+}
+
+// ================================================================
+// EMAIL (GmailApp — no API key needed)
+// ================================================================
+function sendEmail(toEmail, templateType, params) {
+  try {
+    var subject = buildEmailSubject(templateType, params);
+    var html    = buildEmailHtml(templateType, params);
+    if (!subject || !html) return;
+    GmailApp.sendEmail(toEmail, subject, '', {
+      htmlBody: html,
+      name: 'CBC Thane Worship Portal'
+    });
+  } catch(ex) { Logger.log('GmailApp error: ' + ex.message); }
+}
+
+function buildEmailSubject(templateType, params) {
+  var subjects = {
+    'welcome':             'Welcome to CBC Thane Worship Portal',
+    'passwordReset':       'Reset your CBC Worship Portal password',
+    'announcement':        '📢 ' + (params.title || 'New Announcement'),
+    'maintenance':         '⚠️ Maintenance Overdue — ' + (params.assetName || 'Asset'),
+    'maintenanceComplete': '✅ Maintenance Complete — ' + (params.assetName || 'Asset'),
+    'onboarding':          '✅ ' + (params.memberName || 'A member') + ' has completed onboarding',
+    'vm':                  '📖 Monthly Vision & Mission Review due',
+    'audition':            '🎵 New Talent Suggestion — ' + (params.suggestedName || ''),
+  };
+  return subjects[templateType] || null;
+}
+
+function buildEmailHtml(templateType, params) {
+  var header = '<div style="background:#0f1b2d;padding:32px 24px 20px;text-align:center">'
+    + '<p style="font-family:serif;font-size:22px;color:#c9a84c;margin:0;font-weight:bold">CBC Thane Worship Portal</p>'
+    + '<div style="height:2px;background:linear-gradient(90deg,transparent,#c9a84c,transparent);margin:12px auto 0;width:80%"></div>'
+    + '</div>';
+  var footer = '<div style="background:#0f1b2d;padding:16px 24px;text-align:center">'
+    + '<p style="font-family:sans-serif;font-size:11px;color:#b8ae9e;margin:0">CBC Thane Worship Team · Private Member Portal</p>'
+    + '</div>';
+
+  function wrap(bodyHtml) {
+    return '<div style="background:#1a2d45;max-width:560px;margin:0 auto;border-radius:12px;overflow:hidden;font-family:sans-serif">'
+      + header
+      + '<div style="padding:28px 28px 24px;background:#1a2d45">' + bodyHtml + '</div>'
+      + footer
+      + '</div>';
+  }
+
+  function ctaButton(label, href) {
+    return '<div style="text-align:center;margin:24px 0">'
+      + '<a href="' + href + '" style="background:#c9a84c;color:#0f1b2d;font-weight:bold;padding:12px 28px;border-radius:8px;text-decoration:none;font-family:sans-serif;font-size:14px">'
+      + label + '</a></div>';
+  }
+
+  function p(text) {
+    return '<p style="color:#f5f0e8;font-size:14px;line-height:1.7;margin:0 0 12px">' + text + '</p>';
+  }
+
+  function muted(text) {
+    return '<p style="color:#b8ae9e;font-size:13px;line-height:1.6;margin:0 0 10px">' + text + '</p>';
+  }
+
+  if (templateType === 'welcome') {
+    return wrap(
+      p('Hi <strong>' + (params.name || 'there') + '</strong>,')
+      + p('Your account has been created for the CBC Thane Worship Team. Log in and complete your onboarding to get started.')
+      + ctaButton('Open Portal', 'https://cbc-worship-portal.pages.dev')
+      + muted('If you did not expect this email, please contact your worship team administrator.')
+    );
+  }
+
+  if (templateType === 'passwordReset') {
+    return wrap(
+      p('Hi <strong>' + (params.name || 'there') + '</strong>,')
+      + p('You requested a password reset for your CBC Worship Portal account.')
+      + '<div style="background:#0f1b2d;border:1px solid #2a4060;border-radius:8px;padding:16px;margin:16px 0;text-align:center">'
+      + '<p style="font-family:monospace;font-size:15px;color:#c9a84c;margin:0;letter-spacing:2px">' + (params.token || '') + '</p>'
+      + '</div>'
+      + muted('This token expires in 1 hour. If you did not request this, ignore this email.')
+    );
+  }
+
+  if (templateType === 'announcement') {
+    return wrap(
+      p('<strong style="color:#c9a84c">' + (params.title || 'New Announcement') + '</strong>')
+      + p(params.body || '')
+      + ctaButton('View Notice Board', 'https://cbc-worship-portal.pages.dev/notices')
+    );
+  }
+
+  if (templateType === 'maintenance') {
+    return wrap(
+      p('Hi <strong>' + (params.name || 'Admin') + '</strong>,')
+      + p('A worship team asset has overdue maintenance:')
+      + '<table style="width:100%;border-collapse:collapse;margin:16px 0">'
+      + '<tr><td style="padding:8px 12px;color:#b8ae9e;font-size:13px;width:40%">Asset</td><td style="padding:8px 12px;color:#f5f0e8;font-size:13px">' + (params.assetName || '—') + '</td></tr>'
+      + '<tr style="background:#0f1b2d"><td style="padding:8px 12px;color:#b8ae9e;font-size:13px">Due Date</td><td style="padding:8px 12px;color:#e85c5c;font-size:13px">' + (params.dueDate || '—') + '</td></tr>'
+      + '<tr><td style="padding:8px 12px;color:#b8ae9e;font-size:13px">Type</td><td style="padding:8px 12px;color:#f5f0e8;font-size:13px">' + (params.maintenanceType || '—') + '</td></tr>'
+      + '</table>'
+      + ctaButton('View in Portal', 'https://cbc-worship-portal.pages.dev/assets')
+    );
+  }
+
+  if (templateType === 'onboarding') {
+    return wrap(
+      p('Hi <strong>' + (params.name || 'Admin') + '</strong>,')
+      + p('<strong style="color:#4caf82">' + (params.memberName || 'A member') + '</strong> has completed their onboarding for the CBC Thane Worship Team.')
+      + '<div style="background:#0f1b2d;border-left:3px solid #4caf82;padding:12px 16px;border-radius:4px;margin:16px 0">'
+      + '<p style="color:#4caf82;font-size:13px;margin:0">✓ Read V&M &nbsp;·&nbsp; ✓ Passed quiz &nbsp;·&nbsp; ✓ Confirmed commitment &nbsp;·&nbsp; ✓ Checklist done</p>'
+      + '</div>'
+      + ctaButton('View Member Profile', 'https://cbc-worship-portal.pages.dev/settings')
+    );
+  }
+
+  if (templateType === 'vm') {
+    return wrap(
+      p('Hi <strong>' + (params.name || 'there') + '</strong>,')
+      + p('Your monthly Vision & Mission review is due. It only takes a few minutes and keeps the whole team aligned in purpose.')
+      + ctaButton('Complete V&M Review', 'https://cbc-worship-portal.pages.dev/vm')
+      + muted('You can disable these reminders in your profile notification settings.')
+    );
+  }
+
+  if (templateType === 'audition') {
+    return wrap(
+      p('Hi <strong>' + (params.name || 'Admin') + '</strong>,')
+      + p('A team member has suggested a new talent for the worship team:')
+      + '<table style="width:100%;border-collapse:collapse;margin:16px 0">'
+      + '<tr><td style="padding:8px 12px;color:#b8ae9e;font-size:13px;width:40%">Name</td><td style="padding:8px 12px;color:#f5f0e8;font-size:13px">' + (params.suggestedName || '—') + '</td></tr>'
+      + '<tr style="background:#0f1b2d"><td style="padding:8px 12px;color:#b8ae9e;font-size:13px">Skill</td><td style="padding:8px 12px;color:#f5f0e8;font-size:13px">' + (params.skill || '—') + '</td></tr>'
+      + '<tr><td style="padding:8px 12px;color:#b8ae9e;font-size:13px">Ministry</td><td style="padding:8px 12px;color:#f5f0e8;font-size:13px">' + (params.ministry || '—') + '</td></tr>'
+      + '</table>'
+      + ctaButton('Review Suggestion', 'https://cbc-worship-portal.pages.dev/auditions')
+    );
+  }
+
+  if (templateType === 'maintenanceComplete') {
+    return wrap(
+      p('Hi <strong>' + (params.name || 'there') + '</strong>,')
+      + p('Your maintenance request has been completed. Here\'s a summary:')
+      + '<table style="width:100%;border-collapse:collapse;margin:16px 0">'
+      + '<tr><td style="padding:8px 12px;color:#b8ae9e;font-size:13px;width:40%">Asset</td><td style="padding:8px 12px;color:#f5f0e8;font-size:13px">' + (params.assetName || '—') + '</td></tr>'
+      + '<tr style="background:#0f1b2d"><td style="padding:8px 12px;color:#b8ae9e;font-size:13px">Serial No</td><td style="padding:8px 12px;color:#f5f0e8;font-size:13px">' + (params.serialNumber || '—') + '</td></tr>'
+      + '<tr><td style="padding:8px 12px;color:#b8ae9e;font-size:13px">Description</td><td style="padding:8px 12px;color:#f5f0e8;font-size:13px">' + (params.description || '—') + '</td></tr>'
+      + '<tr style="background:#0f1b2d"><td style="padding:8px 12px;color:#b8ae9e;font-size:13px">Raised By</td><td style="padding:8px 12px;color:#f5f0e8;font-size:13px">' + (params.raisedBy || '—') + '</td></tr>'
+      + '<tr><td style="padding:8px 12px;color:#b8ae9e;font-size:13px">Date Raised</td><td style="padding:8px 12px;color:#f5f0e8;font-size:13px">' + (params.dateRaised || '—') + '</td></tr>'
+      + '<tr style="background:#0f1b2d"><td style="padding:8px 12px;color:#b8ae9e;font-size:13px">Completed By</td><td style="padding:8px 12px;color:#f5f0e8;font-size:13px">' + (params.completedBy || '—') + '</td></tr>'
+      + '<tr><td style="padding:8px 12px;color:#b8ae9e;font-size:13px">Completion Date</td><td style="padding:8px 12px;color:#f5f0e8;font-size:13px">' + (params.completionDate || '—') + '</td></tr>'
+      + '<tr style="background:#0f1b2d"><td style="padding:8px 12px;color:#b8ae9e;font-size:13px">Status</td><td style="padding:8px 12px;color:#4caf82;font-size:13px;font-weight:bold">DONE</td></tr>'
+      + '</table>'
+      + ctaButton('View in Portal', 'https://cbc-worship-portal.pages.dev/assets')
+    );
+  }
+
+  return null;
+}
+
+// ================================================================
+// SCHEDULED TRIGGERS (set up manually in Apps Script > Triggers)
+// All are Time-driven → Day timer:
+//   sendVMReminders            → 1st of month, any hour
+//   sendMaintenanceAlerts      → Daily, any hour
+//   checkAndRotatePrayerPartners → Daily, 12pm–1pm
+//   sendDailyPrayerReminder    → Daily, 1pm–2pm
+// ================================================================
+
+// Run daily — emails admins about any maintenance logs past their nextDueDate
+function sendMaintenanceAlerts() {
+  var assets = sheetToObjects(getSheet('Assets'));
+  var logs = sheetToObjects(getSheet('MaintenanceLog'));
+  var admins = sheetToObjects(getSheet('Members')).filter(function(m) {
+    return (m.role === 'ADMIN' || m.role === 'SUPER_ADMIN') && m.isActive && m.email;
+  });
+  var now = new Date();
+  var overdue = logs.filter(function(l) {
+    return !l.isCompleted && l.nextDueDate && new Date(l.nextDueDate) < now;
+  });
+  if (overdue.length === 0) return;
+  overdue.forEach(function(log) {
+    var asset = assets.find(function(a) { return String(a.id) === String(log.assetId); });
+    admins.forEach(function(admin) {
+      sendEmail(admin.email, 'maintenance', {
+        name: admin.name,
+        assetName: asset ? asset.name : 'Unknown Asset',
+        dueDate: log.nextDueDate,
+        maintenanceType: log.maintenanceType
+      });
+    });
+  });
+}
+
+// Run monthly (1st of each month) — emails all active members to complete their V&M review
+function sendVMReminders() {
+  var members = sheetToObjects(getSheet('Members')).filter(function(m) {
+    return m.isActive && m.email;
+  });
+  members.forEach(function(m) {
+    sendEmail(m.email, 'vm', { name: m.name });
+  });
+}
+
+function sendPushNotification(tokens, title, body) {
+  try {
+    var settings = sheetToObjects(getSheet('Settings'));
+    var fbSetting = settings.find(function(s) { return s.key === 'firebaseConfig'; });
+    if (!fbSetting || !fbSetting.value) return;
+    var fbConfig = JSON.parse(fbSetting.value);
+    if (!fbConfig.serverKey) return;
+    var validTokens = (tokens || []).filter(Boolean);
+    if (validTokens.length === 0) return;
+    var payload = { registration_ids: validTokens, notification: { title: title, body: body, icon: '/icons/icon-192.png' } };
+    UrlFetchApp.fetch('https://fcm.googleapis.com/fcm/send', {
+      method: 'POST',
+      headers: { 'Authorization': 'key=' + fbConfig.serverKey, 'Content-Type': 'application/json' },
+      payload: JSON.stringify(payload)
+    });
+  } catch(ex) { Logger.log('FCM error: ' + ex.message); }
+}

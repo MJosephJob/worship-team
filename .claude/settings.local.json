@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run *)",
+      "Bash(wrangler pages *)",
+      "Bash(Select-String -Pattern \"^}\" -Path \"C:\\\\Users\\\\Caroline Joseph\\\\Downloads\\\\PRO-LEVERAGE\\\\CBC-Worship-Portal\\\\apps-script\\\\Code.gs\")",
+      "Bash(Select-Object -Last 1)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\Caroline Joseph\\\\Downloads\\\\PRO-LEVERAGE\\\\CBC-Worship-Portal\" -Recurse -File)",
+      "Bash(Select-Object FullName)",
+      "PowerShell(head *)",
+      "Bash(npx wrangler *)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\Caroline Joseph\\\\Downloads\\\\PRO-LEVERAGE\\\\CBC-Worship-Portal\" -Recurse -Force)",
+      "Bash(Select-Object -Property FullName)",
+      "Bash(Sort-Object FullName)",
+      "Bash(Head -100)",
+      "Bash(findstr /i \"deploy\\\\|build\\\\|wrangler\\\\|pages\")",
+      "PowerShell(npm run *)",
+      "PowerShell(npx wrangler pages deploy dist)",
+      "PowerShell(npx wrangler --version 2>&1; npx wrangler pages project list 2>&1)"
+    ]
+  }
+}
